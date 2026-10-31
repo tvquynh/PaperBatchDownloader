@@ -36,3 +36,9 @@ For public distribution, package the executable, user guides, examples, MIT lice
 ## Validation scope
 
 The maintainer reported V5.2.11 working well in their local use. Automated fixtures are reproducible checks for specific responses, not a guarantee for all current publisher sites, institutional accounts, content licenses, or Windows configurations. Neither the source distribution nor its tests include the maintainer's account or real session logs.
+
+## V5.3.0 checks
+
+Additional fixture options: `--profiles-only`, `--pipeline-only`, `--publisher-block-only`. They exercise profile isolation/logout, concurrency ownership and limits, response cooldowns and HTTP-200 CPE error pages. The full fixture suite passed for the download changes; filter/UI checks passed after the final cosmetic cleanup. Institutional access and real throughput require live runs.
+
+`python scripts/compare_access_runs.py --help` documents comparing exported run diagnostics.

@@ -1,4 +1,17 @@
-# Hướng dẫn sử dụng Paper Batch Downloader V5.2.11
+# Hướng dẫn sử dụng Paper Batch Downloader V5.3.0
+
+## V5.3.0: chọn quyền truy cập và tải
+
+1. Chọn **PTIT/IP — mạng hiện tại** nếu dùng mạng có quyền truy cập. Ứng dụng mở trực tiếp nhà xuất bản, không tự đổi IP hoặc VPN.
+2. Chọn **VNU — OpenAthens**, bấm **Đổi hồ sơ**, rồi vào **LIBRARY ACCESS** để đăng nhập các nguồn cần dùng. Bài hỗ trợ sẽ đi qua cổng thư viện. Bạn tự hoàn tất đăng nhập hoặc CAPTCHA khi nguồn yêu cầu.
+3. Hai chế độ có cookie, trạng thái hàng đợi và log riêng. Bản này không nhập hồ sơ cũ V5.2.11; hãy đăng nhập lại lần đầu. Không mở hai cửa sổ cùng hồ sơ.
+4. **PDF đồng thời** mặc định 2 (1–4); **PDF/nguồn** mặc định 1 (1–2). Browser có thể mở bài tiếp trong khi PDF trước đang truyền. Tải HTTP trực tiếp trong chế độ IP vẫn tuần tự; tốc độ phụ thuộc nguồn và mạng.
+5. **Đăng xuất VNU** dừng hàng đợi, chờ truyền xong, yêu cầu đăng xuất OpenAthens và xóa cookie/dữ liệu trang/cache của hồ sơ VNU. PDF và hàng đợi được giữ lại. Việc này không đăng xuất trình duyệt khác hoặc bảo đảm chấm dứt mọi phiên phía máy chủ nhà xuất bản. Nếu báo lỗi, đóng và mở lại ứng dụng trước khi dùng tiếp.
+6. Khi gặp trang ScienceDirect có thông báo lỗi kèm mã **CPE00002**, nguồn bị tạm ngưng trong lượt hiện tại; các bài chưa chạy cùng nguồn được Deferred, nguồn khác tiếp tục. Chỉ thử lại sau khi nguồn hoạt động bình thường.
+7. Khung browser mặc định cao hơn; kéo thanh ngăn để điều chỉnh. Bộ lọc cột chỉ đổi các hàng hiển thị, không giới hạn hàng đợi tải.
+
+**Log để so sánh hai chế độ:** dùng cùng CSV, thư mục PDF trống riêng và cùng giới hạn tải. Sau mỗi lượt, bấm **Export result CSV** và **OPEN LOG FOLDER**. Mỗi lượt có `run_id`, dấu SHA-256 CSV, `events.jsonl` và `run-summary-<run_id>.json`. Kiểm tra, che thông tin riêng trước khi chia sẻ. Dữ liệu nằm dưới `%LOCALAPPDATA%\PaperBatchDownloader\Profiles\PTIT_IP` hoặc `VNU_ACCOUNT`.
+
 
 ## 1. Cài đặt và mở ứng dụng
 
@@ -130,7 +143,7 @@ Chuột phải vào ô để copy ô đó, DOI, DOI URL, Selected URL, PDF URL, 
 
 Đóng bản cũ khi không còn lượt truyền PDF đang hoạt động, giải nén bản mới vào thư mục riêng rồi mở EXE mới. Hồ sơ ứng dụng nằm ở LocalAppData nên việc đổi thư mục EXE không chủ động xóa cookie.
 
-Để khôi phục lượt gần nhất: giữ nguyên **đường dẫn tuyệt đối của CSV**, thứ tự/dữ liệu bài và thư mục PDF; Load CSV đó, chọn lại đúng thư mục kết quả, rồi RETRY INCOMPLETE. Bản sao CSV ở vị trí khác được coi là hàng đợi khác. V5.2.11 lưu trạng thái hàng đợi gần nhất, không phải trình quản lý độc lập nhiều dự án.
+Để khôi phục lượt gần nhất: giữ nguyên **đường dẫn tuyệt đối của CSV**, thứ tự/dữ liệu bài và thư mục PDF; Load CSV đó, chọn lại đúng thư mục kết quả, rồi RETRY INCOMPLETE. Bản sao CSV ở vị trí khác được coi là hàng đợi khác. V5.3.0 lưu trạng thái hàng đợi gần nhất, không phải trình quản lý độc lập nhiều dự án.
 
 Nếu muốn một lượt hoàn toàn mới, sao chép CSV sang đường dẫn mới và chọn một thư mục kết quả trống. Không xóa PDF cũ chỉ để tránh lỗi trùng tên; di chuyển/đối chiếu chúng trước. Một số file hoàn tất muộn được khôi phục sau kiểm tra định danh và dấu kết thúc PDF. Các file Springer cũ được nhận diện là phụ lục/tài liệu tham khảo sẽ được hoãn; khi thử lại đúng thư mục, file đó được giữ riêng trong Diagnostics trước khi tải bài chính.
 

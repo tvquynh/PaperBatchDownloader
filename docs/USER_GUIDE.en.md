@@ -1,4 +1,19 @@
-# User guide — V5.2.11
+# User guide — V5.3.0
+
+## V5.3.0: access modes and downloads
+
+Select **PTIT/IP** for your current entitled network, or **VNU — OpenAthens**, then **Đổi hồ sơ** to switch. PTIT/IP opens publishers directly and does not change your IP/VPN. VNU routes supported article pages through the library portal; sign in through **LIBRARY ACCESS** first. Complete any sign-in/CAPTCHA yourself.
+
+Each mode has separate cookies, queue state and diagnostics. Old V5.2.11 data is retained but not imported: sign in again on first use. Do not run two windows using the same profile.
+
+**PDF đồng thời** controls concurrent native downloads (default 2, range 1–4); **PDF/nguồn** caps each publisher (default 1, range 1–2). The browser can navigate ahead while earlier downloads transfer. Direct anonymous HTTP downloads in IP mode remain serial. Throughput depends on source and network.
+
+**Đăng xuất VNU** pauses the queue, waits for transfers, requests OpenAthens sign-out and clears VNU browser cookies, site data, cache and service workers. It retains PDFs and queue state. Other browsers and all publisher server-side sessions are not necessarily signed out. If clearing fails, restart before continuing.
+
+ScienceDirect error pages with **CPE00002** suspend that publisher for the current pass and defer its pending articles while other sources continue. Retry only after access returns. The browser area starts taller; drag its divider to resize. Column filters affect display only.
+
+For comparison runs, use the same CSV, equal limits and separate empty PDF folders. Export results and open the log folder after each run. Logs include profile/mode, run ID, CSV SHA-256 and per-run summaries. Review/redact personal information before sharing. Storage is under `%LOCALAPPDATA%\PaperBatchDownloader\Profiles\PTIT_IP` or `VNU_ACCOUNT`.
+
 
 ## Install and start
 
@@ -96,7 +111,7 @@ Click a column header **▾** to filter. Text search ignores case; Status, Publi
 
 Close the old app after active transfers finish, extract the new version separately, and run the new executable. LocalAppData profile storage means moving the executable does not deliberately erase sessions.
 
-To resume the most recently saved queue, retain the CSV's **exact absolute path**, records/order, and PDF folder. Load that CSV, select the same output folder, and press RETRY INCOMPLETE. A copied CSV at another path is a different queue. V5.2.11 saves the most recent queue, not independent state for unlimited projects.
+To resume the most recently saved queue, retain the CSV's **exact absolute path**, records/order, and PDF folder. Load that CSV, select the same output folder, and press RETRY INCOMPLETE. A copied CSV at another path is a different queue. V5.3.0 saves the most recent queue, not independent state for unlimited projects.
 
 For a fresh run, copy the input to a new path and use an empty output folder. Do not blindly delete existing PDFs to resolve filename conflicts. Some complete late downloads recover after identity/completeness checks. Recognized old Springer supplementary/reference PDFs are deferred; retrying into the same folder preserves those files separately in Diagnostics before downloading the main article.
 
