@@ -10,7 +10,7 @@ internal static class LibraryAccessRegression
     public static async Task Run()
     {
         string profile = Path.Combine(Path.GetTempPath(), "LibraryAccessRegression-" + Guid.NewGuid().ToString("N"));
-        using var app = new MainForm(profile) { ShowInTaskbar = false, Opacity = 0 };
+        using var app = new MainForm(profile, AccessMode.VnuAccount) { ShowInTaskbar = false, Opacity = 0 };
         object Field(string name) => typeof(MainForm).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(app)!;
         object? Call(string name, params object[] args) => typeof(MainForm).GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(app, args);
         string Value(object r, string property) => r.GetType().GetProperty(property)!.GetValue(r)?.ToString() ?? "";
@@ -89,7 +89,7 @@ internal static class LibraryAccessRegression
         // Persist URL overrides only; access confirmation must not survive restart.
         ((TextBox)Field("txtLibraryUrl")).Text = "https://library.example.test/login";
         Call("SaveSelectedLibraryUrl");
-        using (var restored = new MainForm(profile))
+        using (var restored = new MainForm(profile, AccessMode.VnuAccount))
         {
             var saved = (IList)typeof(MainForm).GetField("libraryResources", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(restored)!;
             object restoredSource = saved.Cast<object>().Single(r => Value(r, "Key") == "elsevier");

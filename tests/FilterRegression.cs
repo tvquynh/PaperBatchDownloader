@@ -46,7 +46,6 @@ internal static class FilterRegression
         menu.Close();
         await Task.Delay(100);
         Call("SetColumnFilter", "Title", "malware", false);
-        app.Size = new Size(1450, 900);
         app.PerformLayout();
         var filterBar = (Control)Field("filterBar");
         filterBar.Parent!.PerformLayout();
