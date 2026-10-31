@@ -39,7 +39,7 @@ internal static class CsvUtils
                 OpenAlexId = !string.IsNullOrWhiteSpace(Get("openalex_id")) ? Get("openalex_id") : Get("record_id"),
                 Doi = NormalizeDoi(!string.IsNullOrWhiteSpace(Get("doi")) ? Get("doi") : Get("doi_url")),
                 Title = Get("title"),
-                SaveAs = Get("save_as"),
+                SaveAs = string.IsNullOrWhiteSpace(Get("save_as")) ? Get("file_name") : Get("save_as"),
                 PublicationYear = string.IsNullOrWhiteSpace(Get("publication_year")) ? Get("year") : Get("publication_year"),
                 Publisher = Get("publisher"),
                 Source = Get("source"),

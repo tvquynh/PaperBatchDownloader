@@ -12,7 +12,7 @@ public sealed partial class MainForm
         public string Name { get; init; } = "";
         public string Publisher { get; init; } = "";
         public string LoginUrl { get; set; } = "";
-        public string Note { get; init; } = "";
+        public string Note { get; set; } = "";
         public int Papers { get; set; }
         public string AccessState { get; set; } = "Chưa kiểm tra";
     }
@@ -27,8 +27,7 @@ public sealed partial class MainForm
     private TabPage? libraryPage;
     private LibraryResource? activeLibraryResource;
     private DownloadJob? librarySample;
-    private string LibrarySettingsPath => Path.Combine(browserProfilePath ?? Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader"), "library_access_urls.json");
+    private string LibrarySettingsPath => Path.Combine(ProfileDataPath, "library_access_urls.json");
     private static string VnuAthens(string target) => "https://go.openathens.net/redirector/vnu.edu.vn?url=" + Uri.EscapeDataString(target);
 
     private static IEnumerable<LibraryResource> DefaultLibraryResources()
@@ -55,6 +54,8 @@ public sealed partial class MainForm
 
     private void InitializeLibraryAccess(TabControl tabs, FlowLayoutPanel buttons)
     {
+        if (CurrentAccessMode == AccessMode.PtitIp)
+            lblLibraryHelp.Text = "PTIT/IP: dùng quyền từ mạng hiện tại, mở nguồn trực tiếp. Muốn dùng tài khoản VNU hãy Đổi hồ sơ; ứng dụng không tự đổi IP/VPN.";
         libraryTabs = tabs;
         libraryPage = new TabPage("Truy cập thư viện");
         tabs.TabPages.Add(libraryPage);
@@ -80,13 +81,14 @@ public sealed partial class MainForm
         urlBar.Controls.Add(txtLibraryUrl, 1, 0);
         var save = new Button { Text = "Lưu URL", AutoSize = true };
         save.Click += (_, _) => SaveSelectedLibraryUrl(); urlBar.Controls.Add(save, 2, 0);
+        save.Enabled = txtLibraryUrl.Enabled = CurrentAccessMode == AccessMode.VnuAccount;
         libraryGrid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Name", HeaderText = "Nguồn", Width = 215 });
         libraryGrid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Papers", HeaderText = "Bài CSV", Width = 80 });
         libraryGrid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "AccessState", HeaderText = "Kiểm tra phiên hiện tại", Width = 350 });
         libraryGrid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Note", HeaderText = "Ghi chú", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
         foreach (DataGridViewColumn col in libraryGrid.Columns) col.SortMode = DataGridViewColumnSortMode.NotSortable;
         libraryGrid.DataSource = libraryResources;
-        libraryGrid.SelectionChanged += (_, _) => { if (SelectedLibraryResource is { } r) txtLibraryUrl.Text = r.LoginUrl; };
+        libraryGrid.SelectionChanged += (_, _) => { if (SelectedLibraryResource is { } r) txtLibraryUrl.Text = LibraryEntryUrl(r); };
         libraryGrid.CellDoubleClick += (_, e) => { if (e.RowIndex >= 0 && SelectedLibraryResource is { } r) OpenLibraryResource(r); };
         libraryPage.Controls.Add(libraryGrid);
         libraryPage.Controls.Add(urlBar);
@@ -96,7 +98,11 @@ public sealed partial class MainForm
         var prepare = new Button { Text = "LIBRARY ACCESS", AutoSize = true };
         prepare.Click += (_, _) => { tabs.SelectedTab = libraryPage; RefreshLibraryResources(); };
         buttons.Controls.Add(prepare);
-        foreach (var resource in DefaultLibraryResources()) libraryResources.Add(resource);
+        foreach (var resource in DefaultLibraryResources())
+        {
+            if (CurrentAccessMode == AccessMode.PtitIp && resource.Note == "VNU OpenAthens") resource.Note = "PTIT/IP: mở trực tiếp";
+            libraryResources.Add(resource);
+        }
         LoadLibraryUrlOverrides();
     }
 
@@ -119,7 +125,7 @@ public sealed partial class MainForm
         LoadLibraryUrlOverrides();
         foreach (var r in libraryResources) r.Papers = jobs.Count(j => MatchesLibraryResource(r, j));
         libraryResources.ResetBindings();
-        if (SelectedLibraryResource is { } selected) txtLibraryUrl.Text = selected.LoginUrl;
+        if (SelectedLibraryResource is { } selected) txtLibraryUrl.Text = LibraryEntryUrl(selected);
     }
 
     private void LoadLibraryUrlOverrides()
@@ -157,7 +163,9 @@ public sealed partial class MainForm
     }
     private void OpenLibraryResource(LibraryResource resource)
     {
-        if (!initialized) { lblCurrent.Text = "Chờ trình duyệt khởi tạo."; return; }
+        if (!initialized || profileUnavailable || logoutRequested || logoutInProgress) { lblCurrent.Text = "Chờ trình duyệt/đăng xuất hoàn tất; mở lại ứng dụng nếu phiên bị lỗi."; return; }
+        string entry = LibraryEntryUrl(resource);
+        if (entry == "about:blank") { lblCurrent.Text = "Nguồn này chỉ có đường VNU đã cấu hình; hãy chuyển hồ sơ VNU nếu cần."; return; }
         // Keep an existing PDF transfer intact; changing its page could cancel it.
         if (nativePdfContext is not null || browserPdfFetchJob is not null || activeNativeDownloads.Values.Any(d => d.State == Microsoft.Web.WebView2.Core.CoreWebView2DownloadState.InProgress))
         { MessageBox.Show("Hãy chờ lượt tải PDF hiện tại hoàn tất trước khi đăng nhập nguồn.", "Đang tải PDF"); return; }
@@ -168,8 +176,8 @@ public sealed partial class MainForm
         var row = libraryGrid.Rows.Cast<DataGridViewRow>().FirstOrDefault(x => ReferenceEquals(x.DataBoundItem, resource));
         if (row is not null) libraryGrid.CurrentCell = row.Cells[0];
         SetLibraryStatus(resource, "Đang mở cổng; chưa kiểm tra đăng nhập");
-        txtLibraryUrl.Text = resource.LoginUrl;
-        web.CoreWebView2.Navigate(resource.LoginUrl);
+        txtLibraryUrl.Text = entry;
+        web.CoreWebView2.Navigate(entry);
         lblCurrent.Text = $"{resource.Name}: đăng nhập trong trình duyệt bên dưới, sau đó mở bài mẫu và kiểm tra trang.";
     }
     private void OpenNextLibraryResource()
@@ -180,7 +188,7 @@ public sealed partial class MainForm
     }
     private void OpenLibrarySample()
     {
-        if (!initialized || SelectedLibraryResource is not { } r) return;
+        if (!initialized || profileUnavailable || logoutRequested || logoutInProgress || SelectedLibraryResource is not { } r) return;
         var sample = jobs.Where(j => MatchesLibraryResource(r, j)).OrderBy(j => j.IsOpenAccess.Equals("true", StringComparison.OrdinalIgnoreCase) ? 1 : 0).FirstOrDefault();
         if (sample is null) { lblCurrent.Text = $"{r.Name}: CSV chưa có bài mẫu; bạn vẫn có thể đăng nhập nguồn này."; return; }
         OpenLibraryResourceForSample(r, sample);
@@ -210,6 +218,7 @@ public sealed partial class MainForm
             "LoginRequired" or "InstitutionalAccessRequired" => "Cần đăng nhập",
             "Paywall" or "EntitlementDenied" => sample is null ? "Trang báo yêu cầu quyền truy cập" : "Bài mẫu yêu cầu mua/thuê bao",
             "AccessRequired" => "Cần kiểm tra quyền truy cập",
+            "PublisherBlocked" => "Nguồn đang chặn cung cấp nội dung; không phải xác nhận thiếu thuê bao",
             _ => "Chưa xác nhận; hãy mở bài mẫu"
         };
         if (sample is not null && page.Classification is "Normal" or "PdfCandidateFound" or "PdfInterstitial")
@@ -245,6 +254,7 @@ public sealed partial class MainForm
                 popup.Controls.Add(browser);
                 popup.Show(this);
                 await browser.EnsureCoreWebView2Async(web.CoreWebView2.Environment);
+                browser.CoreWebView2.DownloadStarting += (_, download) => TrackManualTransfer(download.DownloadOperation);
                 browser.CoreWebView2.WindowCloseRequested += (_, _) => popup.Close();
                 e.NewWindow = browser.CoreWebView2;
             }

@@ -46,6 +46,7 @@ public sealed partial class MainForm : Form
     private readonly Dictionary<string, CoreWebView2Frame> blobFrames = new();
     private readonly Dictionary<string, DownloadJob> nativeDownloadOwners = new();
     private readonly Dictionary<ulong, DownloadJob> navigationOwners = new();
+    private readonly Dictionary<string, DownloadJob> navigationUrlOwners = new(StringComparer.Ordinal);
     private string downloadFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Papers");
     private System.Windows.Forms.Timer pdfLookupTimer = new() { Interval = 2500 };
     private readonly List<int> queuePlan = new();
@@ -85,16 +86,18 @@ public sealed partial class MainForm : Form
 
     private readonly string? browserProfilePath;
 
-    public MainForm(string? browserProfilePath = null)
+    public MainForm(string? browserProfilePath = null, AccessMode accessMode = AccessMode.PtitIp)
     {
-        this.browserProfilePath = browserProfilePath;
-        Text = "Paper Batch Downloader V5.2.11 - VNU Library Access";
+        CurrentAccessMode = accessMode;
+        ProfileDataPath = browserProfilePath ?? DefaultProfilePath(accessMode);
+        this.browserProfilePath = browserProfilePath ?? Path.Combine(ProfileDataPath, "Browser");
+        downloadFolder = Path.Combine(downloadFolder, ProfileId);
+        Text = "Paper Batch Downloader V5.3.0 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
         Width = 1450;
         Height = 900;
         StartPosition = FormStartPosition.CenterScreen;
 
-        var top = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 4, RowCount = 5, Padding = new Padding(6) };
-        top.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        var top = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 4, RowCount = 4, Padding = new Padding(6) };
         top.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         top.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         top.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -112,20 +115,13 @@ public sealed partial class MainForm : Form
         top.Controls.Add(btnFolder, 2, 1);
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false, Padding = new Padding(0, 4, 0, 4) };
         buttons.Controls.AddRange(new Control[] { btnStart, btnPause, btnContinue, btnSkip, btnRetryIncomplete, btnRetryPublisher, btnOpenLogin, btnExport,
-            new Label { Text = "Preflight/publisher:", AutoSize = true, Padding = new Padding(10, 6, 0, 0) }, numPreflight,
+            new Label { Text = "Bài đầu/nguồn:", AutoSize = true, Padding = new Padding(10, 6, 0, 0) }, numPreflight,
             new Label { Text = "Wait timeout (s):", AutoSize = true, Padding = new Padding(10, 6, 0, 0) }, numWaitSeconds });
+        InitializeAccessProfiles(buttons);
         top.SetColumnSpan(buttons, 4);
         top.Controls.Add(buttons, 0, 2);
-        var hint = new Label
-        {
-            Text = "V5.2.11: Prepare VNU/OpenAthens sessions in Library access before START. Click column headers to filter; explicit paywalls defer immediately.",
-            AutoSize = true,
-            Padding = new Padding(2, 2, 2, 6)
-        };
-        top.SetColumnSpan(hint, 4);
-        top.Controls.Add(hint, 0, 3);
         top.SetColumnSpan(lblPublisherSummary, 4);
-        top.Controls.Add(lblPublisherSummary, 0, 4);
+        top.Controls.Add(lblPublisherSummary, 0, 3);
 
         var splitOuter = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 315 };
         var queueTabs = new TabControl { Dock = DockStyle.Fill };
@@ -173,8 +169,38 @@ public sealed partial class MainForm : Form
         btnOpenLogin.Click += (_, _) => OpenSelectedPublisherLogin();
         attentionTimer.Tick += async (_, _) => await AttentionTimerTickAsync();
         pdfLookupTimer.Tick += async (_, _) => await LookupPdfAsync();
-        Shown += async (_, _) => await InitializeWebViewAsync();
-        FormClosing += (_, _) => SaveStateSnapshot();
+        Shown += async (_, _) =>
+        {
+            ExpandDefaultBrowserArea(splitOuter);
+            await InitializeWebViewAsync();
+        };
+        FormClosing += (_, e) =>
+        {
+            if (HasActiveTransfers || logoutRequested || logoutInProgress) { e.Cancel = true; lblCurrent.Text = "Chờ các lượt truyền/đăng xuất hoàn tất trước khi đóng."; return; }
+            SaveStateSnapshot(); SaveRunSummary(false);
+            paused = true; queueRunning = false; manualLoginMode = true;
+            pipelineTimer.Stop(); attentionTimer.Stop(); pdfLookupTimer.Stop();
+        };
+        FormClosed += (_, _) => { pipelineTimer.Dispose(); attentionTimer.Dispose(); pdfLookupTimer.Dispose(); };
+    }
+
+    private void ExpandDefaultBrowserArea(SplitContainer split)
+    {
+        PerformLayout();
+        int desiredBrowserHeight = split.Panel2.ClientSize.Height * 2;
+        int minimumTableHeight = Math.Min(220, Math.Max(100, split.Height / 2));
+        var workArea = Screen.FromControl(this).WorkingArea;
+        int missingHeight = minimumTableHeight + split.SplitterWidth + desiredBrowserHeight - split.Height;
+        int growBy = Math.Min(Math.Max(0, missingHeight), Math.Max(0, workArea.Height - Height));
+        if (growBy > 0)
+        {
+            Height += growBy;
+            Top = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
+            PerformLayout();
+        }
+        split.Panel1MinSize = minimumTableHeight;
+        int maximumTableHeight = Math.Max(minimumTableHeight, split.Height - split.SplitterWidth - split.Panel2MinSize);
+        split.SplitterDistance = Math.Clamp(split.Height - split.SplitterWidth - desiredBrowserHeight, minimumTableHeight, maximumTableHeight);
     }
 
     private async Task InitializeWebViewAsync()
@@ -226,6 +252,7 @@ public sealed partial class MainForm : Form
             InitializeDiagnosticsBrowser();
             InitializeLibraryPopupHandling();
             initialized = true;
+            StartPipelineTimer();
             lblCurrent.Text = "Browser ready. Login/CAPTCHA can be completed manually here.";
         }
         catch (Exception ex)
@@ -336,6 +363,8 @@ public sealed partial class MainForm : Form
 
     private void LoadCsv()
     {
+        if (queueRunning || HasActiveTransfers || logoutInProgress || logoutRequested)
+        { lblCurrent.Text = "Pause và chờ truyền PDF hoàn tất trước khi nạp CSV khác."; return; }
         try
         {
             if (!File.Exists(txtCsv.Text)) { MessageBox.Show("CSV file not found."); return; }
@@ -344,6 +373,7 @@ public sealed partial class MainForm : Form
             foreach (var j in CsvUtils.ReadJobs(txtCsv.Text)) jobs.Add(j);
             currentIndex = -1;
             RestoreStateSnapshot();
+            RegisterLoadedBatch();
             RefreshLibraryResources();
             UpdateStats();
             UpdatePublisherSummary();
@@ -353,6 +383,9 @@ public sealed partial class MainForm : Form
 
     private async Task StartQueueAsync()
     {
+        if (profileUnavailable || logoutInProgress || logoutRequested) return;
+        if (queueRunning) return;
+        if (HasActiveTransfers) { lblCurrent.Text = "Chờ các lượt truyền hiện tại hoàn tất trước khi mở lượt chạy mới."; return; }
         if (!initialized) { MessageBox.Show("WebView2 is not ready."); return; }
         if (jobs.Count == 0) { MessageBox.Show("Load a CSV first."); return; }
         if (!PrepareDownloadFolder()) return;
@@ -361,6 +394,7 @@ public sealed partial class MainForm : Form
         manualLoginMode = false;
         if (libraryTabs is not null) libraryTabs.SelectedIndex = 0;
         retryMode = false;
+        if (!BeginRun("start")) return;
         BuildQueuePlan(j => j.Status == JobStatus.Pending);
         if (queuePlan.Count == 0)
         {
@@ -382,18 +416,32 @@ public sealed partial class MainForm : Form
 
     private async Task MoveNextAsync()
     {
+        if (movingQueue) { queuePumpRequested = true; return; }
+        movingQueue = true;
+        try { await MoveNextCoreAsync(); }
+        finally
+        {
+            movingQueue = false;
+            if (queuePumpRequested) { queuePumpRequested = false; if (!IsDisposed) BeginInvoke(new Action(async () => await PumpQueueAsync())); }
+        }
+    }
+
+    private async Task MoveNextCoreAsync()
+    {
         if (!queueRunning || paused) return;
         pdfLookupTimer.Stop();
         attentionTimer.Stop();
         attentionJobId = -1;
 
         int next = -1;
-        while (++queuePlanPosition < queuePlan.Count)
+        for (int offset = 1; offset <= queuePlan.Count; offset++)
         {
-            int idx = queuePlan[queuePlanPosition];
+            int position = (queuePlanPosition + offset) % queuePlan.Count;
+            int idx = queuePlan[position];
             if (idx < 0 || idx >= jobs.Count) continue;
-            if (jobs[idx].Status == JobStatus.Pending)
+            if (jobs[idx].Status == JobStatus.Pending && CanSchedulePublisher(jobs[idx].PublisherKey))
             {
+                queuePlanPosition = position;
                 next = idx;
                 break;
             }
@@ -401,14 +449,23 @@ public sealed partial class MainForm : Form
 
         if (next < 0)
         {
+            if (queuePlan.Any(i => i >= 0 && i < jobs.Count && jobs[i].Status == JobStatus.Pending) || HasActiveTransfers)
+            {
+                pipelineWaiting = true;
+                lblCurrent.Text = $"Waiting for download slots/cooldown; {activeNativeDownloads.Count} native transfer(s) active.";
+                return;
+            }
             queueRunning = false;
+            pipelineWaiting = false;
             lblCurrent.Text = "Queue pass completed. Review Deferred/Failed items or use RETRY INCOMPLETE.";
             UpdateStats();
             UpdatePublisherSummary();
             SaveStateSnapshot();
+            SaveRunSummary(true);
             return;
         }
 
+        pipelineWaiting = false;
         currentIndex = next;
         var job = jobs[currentIndex];
         await ResetBrowserForJobAsync();
@@ -426,11 +483,13 @@ public sealed partial class MainForm : Form
         interruptedFetchFallbackTried.Remove(job);
         downloadWatchdogFallbackTried.Remove(job.Id);
         nativePdfJobs.Remove(job);
+        authRoutedJobs.Remove(job);
         nativePdfContext = null;
         job.Status = JobStatus.Navigating;
+        jobStartedUtc[job] = DateTimeOffset.UtcNow;
         RefreshRow(job);
         var shortTitle = job.Title.Length > 90 ? job.Title[..90] + "…" : job.Title;
-        var phase = job.IsPreflightSample ? "PREFLIGHT" : "BATCH";
+        var phase = job.IsPreflightSample ? "Đợt đầu" : "Đang tải";
         lblCurrent.Text = $"[{phase}] {queuePlanPosition + 1}/{queuePlan.Count} | {job.PublisherKey} | row {job.Id}/{jobs.Count} | {job.Doi}  {shortTitle}";
         StartAttentionDeadline(job);
 
@@ -449,7 +508,7 @@ public sealed partial class MainForm : Form
         // V5.2: direct OA PDF URLs should not be sent to the embedded PDF viewer first.
         // Download them with ordinary HTTP, validate %PDF-, and use WebView2 only as a
         // fallback when the publisher requires browser authentication/session state.
-        if (job.IsDirectPdfCandidate && !IsWileyJob(job) && !IsIeeeDirectPdfJob(job))
+        if (ShouldUseAnonymousHttp(job))
         {
             job.PageDecision = "Direct HTTP PDF attempt";
             RefreshRow(job);
@@ -458,6 +517,11 @@ public sealed partial class MainForm : Form
 
             // A skip/timeout may have advanced the queue during the HTTP attempt.
             if (!IsCurrentActiveJob(job)) return;
+            if (paused || logoutRequested || logoutInProgress || manualLoginMode)
+            {
+                job.Status = JobStatus.Deferred; job.DeferredReason = "Paused before browser fallback";
+                RefreshRow(job); SaveStateSnapshot(); return;
+            }
             // HTTP did not yield a real PDF. Fall back to the visible browser.
             job.Status = JobStatus.Navigating;
             job.PageDecision = "Direct HTTP unavailable; browser fallback";
@@ -472,8 +536,9 @@ public sealed partial class MainForm : Form
         }
         else if (IsIeeeDirectPdfJob(job) && TryGetIeeeArticleNumber(job.Url, out var ieeeArticleNumber))
         {
-            job.PdfUrl = job.Url;
-            web.CoreWebView2.Navigate(IsIeeeBinaryPdfUrl(job.Url) ? GetIeeeLandingUrl(ieeeArticleNumber) : job.Url);
+            string entry = Regex.Replace(job.Url, @"([?&]arnumber=)\d+", m => m.Groups[1].Value + ieeeArticleNumber, RegexOptions.IgnoreCase);
+            job.PdfUrl = IsIeeeBinaryPdfUrl(job.Url) ? "" : entry;
+            web.CoreWebView2.Navigate(IsIeeeBinaryPdfUrl(job.Url) ? GetIeeeLandingUrl(ieeeArticleNumber) : entry);
         }
         else
         {
@@ -484,6 +549,7 @@ public sealed partial class MainForm : Form
     private async Task<bool> TryDirectHttpPdfAsync(DownloadJob job)
     {
         string temp = "";
+        directHttpJobs.Add(job);
         try
         {
             using var handler = new HttpClientHandler
@@ -512,6 +578,7 @@ public sealed partial class MainForm : Form
             if (!response.IsSuccessStatusCode)
             {
                 job.PageDecision = $"Direct HTTP {(int)response.StatusCode}; browser fallback";
+                if ((int)response.StatusCode is 403 or 429) ApplyPublisherBackoff(job.PublisherKey, "HTTP " + (int)response.StatusCode + ((int)response.StatusCode == 403 ? " Forbidden" : ""));
                 return false;
             }
 
@@ -539,6 +606,7 @@ public sealed partial class MainForm : Form
             temp = "";
             job.PdfUrl = finalUrl;
             job.FilePath = target;
+            directHttpJobs.Remove(job);
             await FinishDownloadAsync(job, target);
             return true;
         }
@@ -550,6 +618,7 @@ public sealed partial class MainForm : Form
             RefreshRow(job);
             return false;
         }
+        finally { directHttpJobs.Remove(job); }
     }
 
     private void BuildQueuePlan(Func<DownloadJob, bool> predicate)
@@ -691,8 +760,11 @@ public sealed partial class MainForm : Form
                 const uniq = [...new Map(candidates.sort((a,b)=>b.score-a.score).map(x=>[x.u,x])).values()].slice(0,8);
                 const has=(...xs)=>xs.some(x=>low.includes(x));
                 const fullAccess = has('you have full access to this','you have access to this article');
+                const sdErrorHost = scienceDirect || /(^|\.)sciencedirectassets\.com$/i.test(location.hostname);
+                const contentErrorCode = (txt.match(/\bCPE\d{5}\b/i)||[])[0] || '';
                 let cls='Normal', evidence='';
-                if (has('verify you are human','checking your browser','captcha','recaptcha','hcaptcha','cloudflare','are you a robot','unusual traffic','security check')) { cls='BotCheck'; evidence='bot/CAPTCHA challenge text'; }
+                if (sdErrorHost && !fullAccess && has('there was a problem providing the content you requested') && (contentErrorCode || has('reference number'))) { cls='PublisherBlocked'; evidence=contentErrorCode || 'ScienceDirect content delivery block'; }
+                else if (has('verify you are human','checking your browser','captcha','recaptcha','hcaptcha','cloudflare','are you a robot','unusual traffic','security check')) { cls='BotCheck'; evidence='bot/CAPTCHA challenge text'; }
                 else if (!fullAccess && has('does not subscribe to this content','does not have access to this content','your institution does not have access')) { cls='EntitlementDenied'; evidence='institution does not subscribe to this article'; }
                 else if (!fullAccess && has('purchase access','buy this article','buy article pdf','subscribe to access','subscription required','this is a preview of subscription content')) { cls='Paywall'; evidence='article purchase/subscription required'; }
                 else if (has('please sign in through your institution','institutional login required','please select your institution','openathens login','shibboleth login')) { cls='InstitutionalAccessRequired'; evidence='institutional access text'; }
@@ -747,6 +819,7 @@ public sealed partial class MainForm : Form
         job.PageDecision = string.IsNullOrWhiteSpace(d.Evidence) ? d.Classification : $"{d.Classification}: {d.Evidence}";
         RefreshRow(job);
 
+        if (await TryDeferPublisherBlockAsync(job, d)) return true;
         if (await TryDeferPaywallAsync(job, d)) return true;
 
         // First try legitimate PDF links exposed by the current authenticated page.
@@ -766,6 +839,7 @@ public sealed partial class MainForm : Form
         switch (d.Classification)
         {
             case "BotCheck":
+                ApplyPublisherBackoff(job.PublisherKey, "BotCheck");
                 SetWaitingForUser(job, "Bot/CAPTCHA challenge detected. Complete it in the visible browser; the app will re-check automatically.", null, JobStatus.BotCheck, "Bot/CAPTCHA challenge", !fromWaitingRecheck);
                 return true;
             case "InstitutionalAccessRequired":
@@ -811,6 +885,34 @@ public sealed partial class MainForm : Form
         job.PageDecision = "Deferred - Paywall (no timeout wait)";
         RefreshRow(job); UpdateStats(); UpdatePublisherSummary(); SaveStateSnapshot();
         lblCurrent.Text = $"Row {job.Id}: paywall detected; continuing to the next article.";
+        if (queueRunning && !paused) await MoveNextAsync();
+        return true;
+    }
+
+    private async Task<bool> TryDeferPublisherBlockAsync(DownloadJob job, PageDecisionResult decision)
+    {
+        if (decision.Classification != "PublisherBlocked") return false;
+        if (manualLoginMode || !IsCurrentActiveJob(job)) return true;
+        pdfLookupTimer.Stop(); CancelAttentionDeadline(job);
+        suspendedPublishers.Add(job.PublisherKey);
+        string reason = "Publisher temporarily blocked: " + decision.Evidence;
+        job.Status = JobStatus.Deferred;
+        job.AttentionReason = ""; job.DeferredReason = reason;
+        job.PageDecision = "Deferred - Publisher blocked (" + decision.Evidence + ")";
+        job.Error = "Publisher monitoring blocked content delivery. Wait for the block to be lifted or contact library/publisher support; no automatic retry for this publisher in this pass.";
+        RefreshRow(job);
+        int deferred = 0;
+        foreach (var other in jobs.Where(j => j != job && j.Status == JobStatus.Pending && j.PublisherKey.Equals(job.PublisherKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            other.Status = JobStatus.Deferred;
+            other.DeferredReason = reason;
+            other.PageDecision = "Publisher blocked for this pass";
+            other.Error = "No individual download attempted after the publisher block.";
+            RefreshRow(other); deferred++;
+        }
+        LogDiagnostic("publisher-blocked", job, new { publisher = job.PublisherKey, code = decision.Evidence, pendingRowsDeferred = deferred, automaticRetry = false });
+        UpdateStats(); UpdatePublisherSummary(); SaveStateSnapshot();
+        lblCurrent.Text = $"{job.PublisherKey}: content access blocked; remaining publisher rows deferred. Other sources can continue.";
         if (queueRunning && !paused) await MoveNextAsync();
         return true;
     }
@@ -987,6 +1089,8 @@ public sealed partial class MainForm : Form
 
     private async Task RetryIncompleteAsync()
     {
+        if (profileUnavailable || logoutInProgress || logoutRequested) return;
+        if (HasActiveTransfers) { lblCurrent.Text = "Chờ truyền PDF hoàn tất trước khi tạo lượt thử lại."; return; }
         if (jobs.Count == 0) return;
         if (!PrepareDownloadFolder()) return;
         foreach (var job in jobs)
@@ -1004,6 +1108,7 @@ public sealed partial class MainForm : Form
         retryMode = true;
         manualLoginMode = false;
         suspendedPublishers.Clear();
+        if (!BeginRun("retry-incomplete")) return;
         paused = false;
         queueRunning = true;
         BuildQueuePlan(j => j.Status == JobStatus.Pending);
@@ -1012,6 +1117,8 @@ public sealed partial class MainForm : Form
 
     private async Task RetrySelectedPublisherAsync()
     {
+        if (profileUnavailable || logoutInProgress || logoutRequested) return;
+        if (HasActiveTransfers) { lblCurrent.Text = "Chờ truyền PDF hoàn tất trước khi tạo lượt thử lại."; return; }
         if (jobs.Count == 0) return;
         if (!PrepareDownloadFolder()) return;
         var selected = grid.CurrentRow?.DataBoundItem as DownloadJob;
@@ -1033,6 +1140,7 @@ public sealed partial class MainForm : Form
         retryMode = true;
         manualLoginMode = false;
         suspendedPublishers.Remove(publisher);
+        if (!BeginRun("retry-publisher")) return;
         paused = false;
         queueRunning = true;
         BuildPublisherRetryPlan(publisher);
@@ -1061,7 +1169,16 @@ public sealed partial class MainForm : Form
     {
         if (manualLoginMode || suppressNavigationHandling || currentIndex < 0 || currentIndex >= jobs.Count) return;
 
+        if (TryRouteVnuArticle(jobs[currentIndex], e.Uri, out string routed))
+        {
+            e.Cancel = true;
+            var owner = jobs[currentIndex];
+            BeginInvoke(new Action(() => { if (IsCurrentActiveJob(owner) && !manualLoginMode) web.CoreWebView2.Navigate(routed); }));
+            return;
+        }
+
         navigationOwners[e.NavigationId] = jobs[currentIndex];
+        navigationUrlOwners[e.Uri] = jobs[currentIndex];
         if (nativePdfContext is { } pendingContext && e.Uri == pendingContext.ContextUrl)
             nativePdfNavigationId = e.NavigationId;
         if (IsBlobUrl(e.Uri))
@@ -1220,9 +1337,10 @@ public sealed partial class MainForm : Form
         // Detect explicit purchase/subscription pages as soon as navigation completes.
         var pageDecision = await AnalyzeCurrentPageAsync();
         if (manualLoginMode || !IsCurrentActiveJob(job) || job.Status == JobStatus.Downloading) return;
-        if (pageDecision.Classification is "Paywall" or "EntitlementDenied")
+        if (pageDecision.Classification is "Paywall" or "EntitlementDenied" or "PublisherBlocked")
         {
             LogDiagnostic("page-analysis", job, pageDecision);
+            if (await TryDeferPublisherBlockAsync(job, pageDecision)) return;
             if (await TryDeferPaywallAsync(job, pageDecision)) return;
         }
 
@@ -1256,6 +1374,8 @@ public sealed partial class MainForm : Form
         // and exposes a "Download file" button. Click that button automatically so the
         // normal DownloadStarting event handles the file without user intervention.
         if (await TryClickDisabledPdfDownloadPageAsync(job)) return;
+
+        if (await ApplyPageDecisionAsync(job)) return;
 
         pdfLookupTimer.Stop();
         pdfLookupTimer.Start();
@@ -1355,6 +1475,7 @@ public sealed partial class MainForm : Form
 
     private void Web_DownloadStarting(object? sender, CoreWebView2DownloadStartingEventArgs e)
     {
+        if (manualLoginMode) { TrackManualTransfer(e.DownloadOperation); return; }
         if (currentIndex < 0 || currentIndex >= jobs.Count) return;
         var job = jobs[currentIndex];
         try
@@ -1387,8 +1508,12 @@ public sealed partial class MainForm : Form
             var operation = e.DownloadOperation;
             int attempt = job.Attempts;
             activeNativeDownloads[job] = operation;
+            downloadLastProgressUtc[job] = DateTimeOffset.UtcNow;
+            downloadStartedUtc[job] = DateTimeOffset.UtcNow;
+            LogDiagnostic("transfer-start", job, new { transport = "webview-native", active = activeNativeDownloads.Count, limit = (int)numTransfers.Value });
             operation.BytesReceivedChanged += (_, _) =>
             {
+                downloadLastProgressUtc[job] = DateTimeOffset.UtcNow;
                 if (job.Attempts == attempt && IsCurrentActiveJob(job) && job.Status == JobStatus.Downloading && attentionJobId == job.Id)
                     attentionDeadlineUtc = DateTime.UtcNow.AddSeconds((double)numWaitSeconds.Value);
             };
@@ -1398,7 +1523,12 @@ public sealed partial class MainForm : Form
                 if (operation.State == CoreWebView2DownloadState.Completed)
                 {
                     if (activeNativeDownloads.GetValueOrDefault(job) == operation) activeNativeDownloads.Remove(job);
-                    BeginInvoke(new Action(async () => await FinishDownloadAsync(job, target, allowBackground: true)));
+                    nativeFinalizations.Add(job);
+                    BeginInvoke(new Action(async () =>
+                    {
+                        try { await FinishDownloadAsync(job, target, allowBackground: true); }
+                        finally { nativeFinalizations.Remove(job); await PumpQueueAsync(); }
+                    }));
                 }
                 else if (operation.State == CoreWebView2DownloadState.Interrupted)
                 {
@@ -1407,8 +1537,24 @@ public sealed partial class MainForm : Form
                     nativePdfJobs.Remove(job);
                     BeginInvoke(new Action(async () =>
                     {
-                        if (job.Attempts != attempt || !IsCurrentActiveJob(job)) return;
+                        if (job.Attempts != attempt || !jobs.Contains(job)) return;
+                        if (logoutRequested || logoutInProgress || manualLoginMode)
+                        {
+                            PreserveInterruptedTransfer(job, target);
+                            job.Status = JobStatus.Deferred; job.DeferredReason = "Transfer interrupted while queue paused for access";
+                            job.Error = "Download interrupted: " + operation.InterruptReason;
+                            RefreshRow(job); SaveStateSnapshot(); return;
+                        }
+                        if (!IsCurrentActiveJob(job))
+                        {
+                            if (FileUtils.HasCompletePdf(target)) await FinishDownloadAsync(job, target, true);
+                            else { PreserveInterruptedTransfer(job, target); job.Status = JobStatus.Deferred; job.DeferredReason = "Background transfer interrupted"; job.Error = "Download interrupted: " + operation.InterruptReason; job.PageDecision = job.DeferredReason; ApplyPublisherBackoff(job.PublisherKey, operation.InterruptReason.ToString()); RefreshRow(job); SaveStateSnapshot(); }
+                            await PumpQueueAsync();
+                            return;
+                        }
+                        ApplyPublisherBackoff(job.PublisherKey, operation.InterruptReason.ToString());
                         if (FileUtils.HasCompletePdf(target)) { await FinishDownloadAsync(job, target); return; }
+                        PreserveInterruptedTransfer(job, target);
                         SetWaitingForUser(job,
                             "Download interrupted. Fix the page/session and click CONTINUE CURRENT; otherwise it will auto-defer.",
                             "Download interrupted: " + operation.InterruptReason);
@@ -1436,6 +1582,7 @@ public sealed partial class MainForm : Form
                     }));
                 }
             };
+            BeginInvoke(new Action(async () => { if (IsCurrentActiveJob(job) && browserPdfFetchJob is null) await PumpQueueAsync(); }));
         }
         catch (Exception ex)
         {
@@ -1476,7 +1623,7 @@ public sealed partial class MainForm : Form
     }
 
     private bool IsCurrentActiveJob(DownloadJob job)
-        => currentIndex >= 0 && currentIndex < jobs.Count && jobs[currentIndex] == job
+        => !IsDisposed && !Disposing && currentIndex >= 0 && currentIndex < jobs.Count && jobs[currentIndex] == job
             && job.Status is not (JobStatus.Completed or JobStatus.Skipped or JobStatus.Deferred or JobStatus.Failed);
 
     private static bool IsPdfResponse(string url, string contentType, string disposition)
@@ -1589,15 +1736,15 @@ public sealed partial class MainForm : Form
         var m = Regex.Match(url, @"(?:[?&]arnumber=)(\d+)", RegexOptions.IgnoreCase);
         if (m.Success)
         {
-            articleNumber = m.Groups[1].Value;
-            return true;
+            articleNumber = m.Groups[1].Value.TrimStart('0');
+            return articleNumber.Length > 0;
         }
 
         m = Regex.Match(url, @"/(\d+)\.pdf(?:[?&#]|$)", RegexOptions.IgnoreCase);
         if (m.Success)
         {
-            articleNumber = m.Groups[1].Value;
-            return true;
+            articleNumber = m.Groups[1].Value.TrimStart('0');
+            return articleNumber.Length > 0;
         }
         return false;
     }
@@ -1794,13 +1941,27 @@ public sealed partial class MainForm : Form
         if (!currentActive)
         {
             if (!allowBackground || !jobs.Contains(job) || job.Status is JobStatus.Skipped or JobStatus.Completed
-                || job.FilePath != path || !FileUtils.HasCompletePdf(path)) return;
+                || job.FilePath != path) return;
+            if (!FileUtils.HasCompletePdf(path))
+            {
+                if (!activeNativeDownloads.ContainsKey(job))
+                {
+                    job.Status = JobStatus.Deferred;
+                    job.DeferredReason = "Background PDF incomplete or invalid";
+                    job.Error = job.DeferredReason;
+                    PreserveInterruptedTransfer(job, path);
+                    RefreshRow(job); SaveStateSnapshot(); await PumpQueueAsync();
+                }
+                return;
+            }
             nativePdfJobs.Remove(job);
             activeNativeDownloads.Remove(job);
             job.Status = JobStatus.Completed;
             job.Error = ""; job.DeferredReason = ""; job.AttentionReason = "";
             job.PageDecision = "Completed after background download";
             RefreshRow(job); UpdateStats(); SaveStateSnapshot();
+            RecordDownloadCompletion(job, path, "background");
+            await PumpQueueAsync();
             return; // Never advance or otherwise touch another row's queue position.
         }
         if (!File.Exists(path) || !FileUtils.HasPdfMagic(path))
@@ -1838,8 +1999,8 @@ public sealed partial class MainForm : Form
         SaveStateSnapshot();
         if (job.Status == JobStatus.Completed)
         {
+            RecordDownloadCompletion(job, path, "foreground");
             lblCurrent.Text = "Completed: " + path;
-            await Task.Delay(900);
             if (!paused && currentIndex >= 0 && currentIndex < jobs.Count && jobs[currentIndex] == job)
             {
                 queueRunning = true;
@@ -1850,8 +2011,16 @@ public sealed partial class MainForm : Form
 
     private async Task ContinueCurrentAsync()
     {
+        if (profileUnavailable || logoutInProgress || logoutRequested) return;
         if (currentIndex < 0 || currentIndex >= jobs.Count) return;
         var job = jobs[currentIndex];
+        manualLoginMode = false;
+        if (activeNativeDownloads.ContainsKey(job) || directHttpJobs.Contains(job))
+        {
+            paused = false; queueRunning = true;
+            await PumpQueueAsync(); return;
+        }
+        nativePdfContext = null;
         CancelAttentionDeadline(job);
         nativePdfJobs.Remove(job);
         job.Status = JobStatus.LookingForPdf;
@@ -1891,10 +2060,9 @@ public sealed partial class MainForm : Form
     {
         try
         {
+            if (loadedCsvPath.Length > 0 && Path.GetFullPath(txtCsv.Text.Trim()) != loadedCsvPath) return;
             if (jobs.Count == 0) return;
-            var folder = browserProfilePath is null
-                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader")
-                : Path.Combine(browserProfilePath, "QueueState");
+            var folder = Path.Combine(ProfileDataPath, "QueueState");
             Directory.CreateDirectory(folder);
             CsvUtils.WriteResults(Path.Combine(folder, "last_results.csv"), jobs);
             var state = new SavedState
@@ -1923,9 +2091,7 @@ public sealed partial class MainForm : Form
     {
         try
         {
-            var folder = browserProfilePath is null
-                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader")
-                : Path.Combine(browserProfilePath, "QueueState");
+            var folder = Path.Combine(ProfileDataPath, "QueueState");
             var path = Path.Combine(folder, "state_v51.json");
             if (!File.Exists(path) || string.IsNullOrWhiteSpace(txtCsv.Text)) return;
             var state = JsonSerializer.Deserialize<SavedState>(File.ReadAllText(path));

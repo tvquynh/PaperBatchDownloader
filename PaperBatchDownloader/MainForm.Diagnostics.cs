@@ -9,9 +9,7 @@ public sealed partial class MainForm
 {
     private readonly string diagnosticSession = DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N")[..8];
     private readonly Dictionary<DownloadJob, string> lastDiagnosticStates = new();
-    private string DiagnosticDirectory => Path.Combine(browserProfilePath ??
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader"),
-        "Diagnostics", diagnosticSession);
+    private string DiagnosticDirectory => Path.Combine(ProfileDataPath, "Diagnostics", diagnosticSession);
     private DownloadJob? DiagnosticJob => !manualLoginMode && currentIndex >= 0 && currentIndex < jobs.Count ? jobs[currentIndex] : null;
 
     private void InitializeDiagnosticsUi(FlowLayoutPanel buttons)
@@ -84,7 +82,8 @@ public sealed partial class MainForm
 
     private void InitializeDiagnosticsBrowser()
     {
-        LogDiagnostic("session-start", null, new { version = "5.2.11", browser = web.CoreWebView2.Environment.BrowserVersionString });
+        LogDiagnostic("session-start", null, new { version = "5.3.0", build = "ui1", browser = web.CoreWebView2.Environment.BrowserVersionString,
+            profileId = ProfileId, accessMode = CurrentAccessMode.ToString() });
         web.CoreWebView2.NavigationStarting += (_, e) =>
             LogDiagnostic("navigation-start", DiagnosticJob, new { e.NavigationId, e.Uri, e.IsRedirected, e.Cancel });
         web.CoreWebView2.NavigationCompleted += (_, e) =>
@@ -95,9 +94,18 @@ public sealed partial class MainForm
             try
             {
                 var mime = e.Response.Headers.Contains("Content-Type") ? e.Response.Headers.GetHeader("Content-Type") : "";
-                if (e.Request.Uri == web.CoreWebView2.Source || mime.Contains("pdf", StringComparison.OrdinalIgnoreCase)
+                var responseOwner = nativeDownloadOwners.GetValueOrDefault(e.Request.Uri) ?? navigationUrlOwners.GetValueOrDefault(e.Request.Uri);
+                if (responseOwner is not null && !jobs.Contains(responseOwner)) responseOwner = null;
+                if (responseOwner is not null || e.Request.Uri == web.CoreWebView2.Source || mime.Contains("pdf", StringComparison.OrdinalIgnoreCase)
                     || IsBinaryPdfUrl(e.Request.Uri))
-                    LogDiagnostic("http-response", DiagnosticJob, new { url = e.Request.Uri, status = e.Response.StatusCode, contentType = mime });
+                {
+                    LogDiagnostic("http-response", responseOwner ?? DiagnosticJob, new { url = e.Request.Uri, status = e.Response.StatusCode, contentType = mime });
+                    if (e.Response.StatusCode is 403 or 429)
+                    {
+                        var owner = responseOwner ?? (e.Request.Uri == web.CoreWebView2.Source ? DiagnosticJob : null);
+                        if (owner is not null) ApplyPublisherBackoff(owner.PublisherKey, "HTTP " + e.Response.StatusCode + (e.Response.StatusCode == 403 ? " Forbidden" : ""));
+                    }
+                }
             }
             catch (Exception ex) { LogDiagnostic("diagnostic-error", DiagnosticJob, ex.Message); }
         };
@@ -123,8 +131,9 @@ public sealed partial class MainForm
         try
         {
             Directory.CreateDirectory(DiagnosticDirectory);
-            var line = JsonSerializer.Serialize(new { utc = DateTimeOffset.UtcNow, kind,
-                job = job is null ? null : new { job.Id, job.Doi, job.Url, job.Attempts, status = job.StatusText,
+            var line = JsonSerializer.Serialize(new { utc = DateTimeOffset.UtcNow, kind, profile_id = ProfileId,
+                access_mode = CurrentAccessMode.ToString(), run_id = runId, csv_sha256 = csvSha256,
+                job = job is null ? null : new { job.Id, job.Doi, job.Url, job.Attempts, job.PublisherKey, job.SaveAs, job.IsOpenAccess, status = job.StatusText,
                     job.PdfUrl, job.PageDecision, job.Error, job.FilePath }, detail });
             File.AppendAllText(Path.Combine(DiagnosticDirectory, "events.jsonl"), line + Environment.NewLine, Encoding.UTF8);
         }
