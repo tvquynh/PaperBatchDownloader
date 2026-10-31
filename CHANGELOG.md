@@ -1,5 +1,14 @@
 # Changelog
 
+## V5.3.0 — 2026-11-01
+
+- Separate PTIT/IP and VNU profiles; VNU logout with transfer-safe browser-data clearing.
+- Overlapping native downloads, concurrency limits, cooldowns and per-run comparison logs.
+- Fix IEEE zero-padded IDs, CSV file_name aliases and Continue after manual sign-in.
+- Recognize ScienceDirect CPE00002 and defer the blocked publisher for the current pass.
+- Increase default browser height; remove development notes from the main interface.
+- Fixture regression suite and UI checks pass; live institutional access/throughput remains dependent on the network and subscription.
+
 ## V5.2.11 — public release
 
 - Library-access workspace with 14 editable VNU/OpenAthens/direct routes and per-CSV publisher counts.
