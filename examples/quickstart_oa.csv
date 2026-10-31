@@ -1,0 +1,4 @@
+doi,title,publisher,is_open_access,landing_page,best_oa_pdf_url,save_as
+10.48550/arXiv.1706.03762,Attention Is All You Need,arXiv,true,https://arxiv.org/abs/1706.03762,https://arxiv.org/pdf/1706.03762,quickstart_arxiv.pdf
+10.1007/s10462-024-10726-1,"Automated machine learning: past, present and future",Springer,true,https://link.springer.com/article/10.1007/s10462-024-10726-1,,quickstart_springer.pdf
+10.1016/j.egyr.2024.02.027,ScienceDirect open-access sample,Elsevier,true,https://www.sciencedirect.com/science/article/pii/S2352484724001094,,quickstart_sciencedirect.pdf
