@@ -1,0 +1,271 @@
+{
+  "papers": 150,
+  "venues": 50,
+  "papers_per_venue": 3,
+  "journal_papers": 117,
+  "conference_papers": 33,
+  "journal_publishers": {
+    "Elsevier": 42,
+    "Springer Nature": 45,
+    "IEEE": 30
+  },
+  "doi_overlap_with_batch500": 0,
+  "oa_evidence": "Existing publisher OA metadata / CC VOR licenses / official open proceedings; not a fresh live download verification.",
+  "scope": "Security and ML journal titles plus supporting cross-domain AI venues; articles are not all malware research.",
+  "source_files": [
+    "journal_coverage/START_infosec_malware_ml_journals_3_each.csv",
+    "journal_coverage/conferences/START_security_malware_conferences.csv"
+  ],
+  "venues_included": [
+    {
+      "source": "Artificial Intelligence Chemistry",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Artificial Intelligence in Agriculture",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Artificial Intelligence in Geosciences",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Artificial Intelligence in the Life Sciences",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Computers and Education Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Cyber Security and Applications",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Cyber-Physical Energy Systems",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Design and Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "European Journal of Radiology Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Expert Systems with Applications X",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Intelligent Systems with Applications",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Machine Learning with Applications",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Soft Computing Letters",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Systems and Soft Computing",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Journal of Computer Virology and Hacking Techniques",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Cybersecurity",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "International Journal of Information Security",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Journal of Cryptology",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Journal of Cryptographic Engineering",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Data Mining and Knowledge Discovery",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Complex & Intelligent Systems",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Neural Processing Letters",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Journal of Intelligent Information Systems",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Soft Computing",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Progress in Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Discover Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Distributed Computing",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Advances in Computational Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "Annals of Mathematics and Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Information Forensics and Security",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Dependable and Secure Computing",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Security & Privacy",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Neural Networks and Learning Systems",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Cybernetics",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Artificial Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Emerging Topics in Computational Intelligence",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Intelligent Systems",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Machine Learning in Communications and Networking",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "IEEE Transactions on Systems Man and Cybernetics Systems",
+      "venue_type": "journal",
+      "papers": 3
+    },
+    {
+      "source": "AAAI",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "ACM AsiaCCS",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "ACM CCS",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "ACSAC",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "NDSS 2025",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "RAID",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "USENIX Security 2025",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "ACM CODASPY",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "ACM SACMAT",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "ACM WiSec",
+      "venue_type": "conference",
+      "papers": 3
+    },
+    {
+      "source": "SOUPS 2025",
+      "venue_type": "conference",
+      "papers": 3
+    }
+  ]
+}
