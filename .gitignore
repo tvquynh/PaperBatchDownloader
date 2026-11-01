@@ -29,3 +29,6 @@ new_oa_test/import-validation.json
 download_interval.json
 **/node_modules/
 tests/download-interval-*.png
+build-output/
+build-logs/
+tests/compact-*.png

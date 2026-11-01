@@ -1,5 +1,13 @@
 # Changelog
 
+## V5.3.6 — 2026-11-01
+
+- Compact main controls with advanced settings under Options. Default to three queue rows with a manually resizable divider.
+- Detect the exact Save your job and exit. text with a preceding standard checkbox; wait five seconds, click, inspect the checked state and retry after another five seconds if needed.
+- Revalidate element identity and page state. Stop clicking when selected; no Job saved notification, queue pause or automatic exit.
+- Add focused WebView retry and compact-layout fixtures.
+- Add a version-aware BAT build helper with an SDK check, local output directory, build log and noninteractive mode.
+
 ## V5.3.3 — 2026-11-01
 
 - Add a configurable rest interval in minutes between completed papers, with a live countdown.

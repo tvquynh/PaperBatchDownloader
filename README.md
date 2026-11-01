@@ -1,6 +1,6 @@
 # Paper Batch Downloader
 
-**V5.3.3 · Windows x64 · C# / .NET 8 / WebView2 · MIT**
+**V5.3.6 · Windows x64 · C# / .NET 8 / WebView2 · MIT**
 
 Download research-paper PDFs from a CSV using an embedded browser, your existing publisher/library access, and a resumable queue. Complete institutional sign-in and CAPTCHA yourself in the application. Includes a library-access workspace, column filters, per-article decisions, progress recovery, and local diagnostics.
 
@@ -9,10 +9,10 @@ Download research-paper PDFs from a CSV using an embedded browser, your existing
 ## Quick start
 
 1. Download the **English documentation** Windows ZIP from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest) and extract it to a writable folder.
-2. Open `PaperBatchDownloader-v5.3.3.exe`, or use `OPEN_PTIT.cmd` / `OPEN_VNU.cmd` to select an access mode.
+2. Open `PaperBatchDownloader-v5.3.6.exe`, or use `OPEN_PTIT.cmd` / `OPEN_VNU.cmd` to select an access mode.
 3. Choose a PDF output folder, select `examples/quickstart_oa.csv` with **CSV...**, and click **Load CSV**.
 4. For institutional access, select the appropriate mode and prepare sign-in through **LIBRARY ACCESS**. Complete sign-in and CAPTCHA yourself.
-5. Optionally set the **rest between papers (minutes)** control: **3** waits three minutes after each completed PDF; **0** keeps continuous downloads. Press **START**. Inspect downloaded PDFs and use **Export result CSV** to save the results.
+5. Open **Options / Tùy chọn** to optionally set the **rest between papers (minutes)** control: **3** waits three minutes after each completed PDF; **0** keeps continuous downloads. Press **START**. Inspect downloaded PDFs and use **Export result CSV** to save the results.
 6. To download unfinished articles through the other access mode, wait for active transfers, switch profiles, keep the same CSV/output folder, and press **START** again. Completed articles are retained.
 
 Requires Windows x64 and [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). The ZIP includes .NET; users do not need the .NET SDK or an API key to run it. There is no native macOS, Linux or ARM64 package in this release.
@@ -26,7 +26,8 @@ Some Windows controls are localized. The [user guide](docs/USER_GUIDE.en.md) des
 - Separate browser cookies and sign-in sessions, with VNU logout and profile-specific diagnostics.
 - Configurable rest between completed papers, with a countdown, pause/resume and saved per-profile settings. A positive interval downloads papers one at a time; zero retains normal concurrency.
 - Overlapping native PDF downloads with global/per-publisher caps; ScienceDirect CPE block recognition.
-- Larger default browser area and a simplified interface.
+- Compact main controls; advanced settings are under Options (Tùy chọn). The queue defaults to three rows with a draggable divider.
+- Wait five seconds before selecting the checkbox immediately before Save your job and exit.; retry until selected, without notifications or automatic exit.
 - Fourteen VNU library entry routes, editable in VNU mode; additional publishers from the CSV appear with direct entry URLs. Users at other institutions can edit the URLs.
 - Per-publisher preflight samples, followed by interleaved queue processing.
 - Explicit article paywalls defer immediately; login/CAPTCHA pages retain manual-attention handling.
@@ -65,7 +66,7 @@ dotnet restore PaperBatchDownloader.sln
 dotnet publish PaperBatchDownloader/PaperBatchDownloader.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish-win-x64
 ```
 
-Alternatively run `scripts/build_release.ps1`. See [development and tests](docs/DEVELOPMENT.md), [release notes](CHANGELOG.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+Run `build_release.bat` for a version-aware local Windows build under `build-output/`; see [BUILDING.txt](BUILDING.txt). Alternatively run `scripts/build_release.ps1`. See [development and tests](docs/DEVELOPMENT.md), [release notes](CHANGELOG.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Report a problem
 

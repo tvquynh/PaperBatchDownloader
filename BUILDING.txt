@@ -1,0 +1,42 @@
+BUILD PAPER BATCH DOWNLOADER ON WINDOWS
+
+1. Install the .NET 8 SDK for Windows x64, not only the runtime:
+   https://dotnet.microsoft.com/download/dotnet/8.0
+2. Download or clone the complete source. Keep build_release.bat beside
+   the PaperBatchDownloader folder containing its .csproj file.
+3. Save source changes. Close any EXE running from the output folder for
+   this same version, then double-click build_release.bat.
+4. Wait for BUILD SUCCEEDED. The script prints the EXE and log paths.
+
+From PowerShell in the source root:
+
+.\build_release.bat
+
+Without waiting for a key at the end:
+
+.\build_release.bat --no-pause
+
+Example output for version 5.3.6:
+build-output\PaperBatchDownloader-v5.3.6-win-x64\PaperBatchDownloader-v5.3.6.exe
+
+The script reads Version and AssemblyName from the project automatically.
+Rebuilding the same version updates its build-output folder. Earlier
+publish-win-x64-v... release folders are not overwritten.
+
+To change the version, edit <Version> in
+PaperBatchDownloader/PaperBatchDownloader.csproj. The window title's
+version is set separately in MainForm.cs.
+
+The output includes the .NET runtime. WebView2 Evergreen Runtime is
+still required to run the embedded browser. Internet access may be
+needed for NuGet restore. Administrator rights are not needed.
+
+If the build fails, read build-logs/build_release.log. This log is
+replaced on each build. Check for SDK, network/NuGet errors or a running
+EXE locking the output. Existing WindowsBase/WebView2 or unused-field
+warnings may appear; inspect actual errors and the final success/failure
+message. Exit code is 0 on success, 1 on failure.
+
+This BAT creates a local executable only. It does not publish to GitHub,
+create a ZIP, or bundle guides/examples/license notices automatically.
+Include repository LICENSE and dependency notices when redistributing.
