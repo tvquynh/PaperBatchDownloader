@@ -1,6 +1,6 @@
 # Paper Batch Downloader
 
-**V5.3.2 · Windows x64 · C# / .NET 8 / WebView2 · MIT**
+**V5.3.3 · Windows x64 · C# / .NET 8 / WebView2 · MIT**
 
 Download research-paper PDFs from a CSV using an embedded browser, your existing publisher/library access, and a resumable queue. Complete institutional sign-in and CAPTCHA yourself in the application. Includes a library-access workspace, column filters, per-article decisions, progress recovery, and local diagnostics.
 
@@ -9,10 +9,10 @@ Download research-paper PDFs from a CSV using an embedded browser, your existing
 ## Quick start
 
 1. Download the **English documentation** Windows ZIP from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest) and extract it to a writable folder.
-2. Open `PaperBatchDownloader-v5.3.2.exe`, or use `OPEN_PTIT.cmd` / `OPEN_VNU.cmd` to select an access mode.
+2. Open `PaperBatchDownloader-v5.3.3.exe`, or use `OPEN_PTIT.cmd` / `OPEN_VNU.cmd` to select an access mode.
 3. Choose a PDF output folder, select `examples/quickstart_oa.csv` with **CSV...**, and click **Load CSV**.
 4. For institutional access, select the appropriate mode and prepare sign-in through **LIBRARY ACCESS**. Complete sign-in and CAPTCHA yourself.
-5. Press **START**. Inspect downloaded PDFs and use **Export result CSV** to save the results.
+5. Optionally set the **rest between papers (minutes)** control: **3** waits three minutes after each completed PDF; **0** keeps continuous downloads. Press **START**. Inspect downloaded PDFs and use **Export result CSV** to save the results.
 6. To download unfinished articles through the other access mode, wait for active transfers, switch profiles, keep the same CSV/output folder, and press **START** again. Completed articles are retained.
 
 Requires Windows x64 and [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). The ZIP includes .NET; users do not need the .NET SDK or an API key to run it. There is no native macOS, Linux or ARM64 package in this release.
@@ -24,6 +24,7 @@ Some Windows controls are localized. The [user guide](docs/USER_GUIDE.en.md) des
 - CSV input: DOI, article landing page, or direct PDF; optional fixed output filenames.
 - Shared queue progress across PTIT/IP and VNU for the same CSV and output folder; switch access modes to download only unfinished papers.
 - Separate browser cookies and sign-in sessions, with VNU logout and profile-specific diagnostics.
+- Configurable rest between completed papers, with a countdown, pause/resume and saved per-profile settings. A positive interval downloads papers one at a time; zero retains normal concurrency.
 - Overlapping native PDF downloads with global/per-publisher caps; ScienceDirect CPE block recognition.
 - Larger default browser area and a simplified interface.
 - Fourteen VNU library entry routes, editable in VNU mode; additional publishers from the CSV appear with direct entry URLs. Users at other institutions can edit the URLs.

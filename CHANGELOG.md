@@ -1,5 +1,14 @@
 # Changelog
 
+## V5.3.3 — 2026-11-01
+
+- Add a configurable rest interval in minutes between completed papers, with a live countdown.
+- A positive interval runs transfers serially; zero retains the existing pipeline.
+- Save the interval per access profile and allow changes while waiting.
+- Keep pause/resume responsive; Continue and Skip preserve completed rows during the rest period.
+- Finish the queue without an extra rest after the last paper.
+- Add real local HTTP PDF fixtures for timing, serial transfers, pause/resume, live changes and settings persistence. The existing full fixture suite also passes.
+
 ## V5.3.2 — 2026-11-01
 
 - Share queue progress across PTIT/IP and VNU for the same CSV and PDF folder.

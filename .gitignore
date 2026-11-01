@@ -25,3 +25,7 @@ new_oa_test/import-validation.json
 *.pem
 *.key
 *.pfx
+
+download_interval.json
+**/node_modules/
+tests/download-interval-*.png
