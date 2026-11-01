@@ -1,5 +1,7 @@
 # Local data and diagnostics
 
+The optional checkbox monitor inspects matching text and standard checkbox state in the embedded page and accessible same-origin frames. It moves the system pointer to the target, sends a click to the WebView and logs the selected state. It does not send page contents to a separate service or automatically close the application.
+
 The app has no application analytics or diagnostic-upload service. It connects to DOI services, publishers, library identity providers and article resources as needed. Web pages may make their own third-party requests. Authentication is entered by the user in WebView2; the app does not provide an account, collect an app-managed plaintext password list, or grant access.
 
 Default local storage on Windows (each mode has its own `Profiles\PTIT_IP` or `Profiles\VNU_ACCOUNT` directory; V5.2.11 storage is retained separately and not imported):

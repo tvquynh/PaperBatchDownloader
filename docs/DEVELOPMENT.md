@@ -1,5 +1,9 @@
 # Build, test and package
 
+For a local build, run `build_release.bat` in the source root, or `.\build_release.bat --no-pause` from PowerShell. It requires SDK 8 and writes the versioned executable under `build-output/` plus `build-logs/build_release.log`. See [BUILDING.txt](../BUILDING.txt).
+
+V5.3.6 focused checks: `--compact-only` verifies three default queue rows, WebView space, manual resizing and Options behavior. The historical `--save-exit-only` option now verifies checkbox monitoring only: real five-second initial/retry intervals, rejected clicks, selected-state stopping, replacement identity, disable/cancel, and absence of notifications, exit or queue pause. The implementation is in `MainForm.SaveAndExit.cs`, entry point `CheckSaveCheckboxAsync`, with `SaveCheckboxScript` for DOM matching. No live publisher checkbox page is certified by these fixtures.
+
 Prerequisites: Windows x64, [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), Microsoft WebView2 Evergreen, and network access for NuGet restore. Application entry point: `PaperBatchDownloader/Program.cs`; UI and browser logic are in the `MainForm` partial files. The NuGet dependency is `Microsoft.Web.WebView2` 1.0.3124.44.
 
 ```powershell

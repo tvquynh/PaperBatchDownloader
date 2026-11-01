@@ -1,4 +1,4 @@
-# User guide — V5.3.3
+# User guide — V5.3.6
 
 Some controls in the Windows application are localized. This guide uses English descriptions of those controls; **Switch profile** is next to the access-mode selector. In the library workspace, select a source to sign in, open a sample article, or check its page.
 
@@ -32,9 +32,17 @@ With a positive interval, papers download one at a time. The status line shows t
 
 **PAUSE** stops queue advancement. Real time continues to elapse while paused; **CONTINUE CURRENT** resumes and waits only for any remaining interval. Skip during the rest period leaves the completed paper intact. Changing the value recalculates the current wait from the last completion; setting it to zero removes the wait. Existing active work is allowed to finish. Each access profile saves its own interval for the next launch.
 
+## Compact layout and checkbox monitoring
+
+The queue starts at three complete rows. Drag its divider to enlarge it manually. Advanced commands, rest intervals, timeouts, concurrency settings and publisher details are under Options (Tùy chọn), collapsed by default. Opening/closing Options retains the manually chosen queue height.
+
+The optional checkbox detector finds an enabled standard HTML checkbox immediately before the exact text Save your job and exit. If unchecked, it waits at least five seconds, revalidates the current checkbox, moves the pointer and clicks. It checks the result and repeats the five-second wait-and-click cycle until selected. Replaced elements start a fresh wait. Hidden, disabled, unrelated or ambiguous targets are ignored.
+
+Disable this feature in Options to cancel waiting/retries. There is no Job saved notification, queue pause, exit countdown or automatic exit. Detection supports the main document and accessible same-origin frames, not cross-origin frames or custom widgets.
+
 ## Install and start
 
-Download `PaperBatchDownloader-v5.3.3-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete English-documentation archive to a writable folder, and run `PaperBatchDownloader-v5.3.3.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
+Download `PaperBatchDownloader-v5.3.6-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete English-documentation archive to a writable folder, and run `PaperBatchDownloader-v5.3.6.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
 
 This release targets Windows x64 with Microsoft WebView2 Evergreen. Install the [WebView2 Runtime from Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) if the browser cannot initialize. There is no native macOS, Linux, or ARM64 package in this release. An Internet connection and writable PDF folder are required. The executable is not code-signed; obtain it from this repository's Releases and compare its archive SHA-256 with the supplied checksum file.
 
