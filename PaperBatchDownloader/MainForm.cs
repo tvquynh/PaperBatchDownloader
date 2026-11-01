@@ -97,7 +97,7 @@ public sealed partial class MainForm : Form
         this.browserProfilePath = browserProfilePath ?? Path.Combine(ProfileDataPath, "Browser");
         this.sharedQueueRoot = sharedQueueRoot ?? (browserProfilePath is null
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader", "SharedQueues") : null);
-        Text = "Paper Batch Downloader V5.3.3 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
+        Text = "Paper Batch Downloader V5.3.6 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
         Width = 1450;
         Height = 900;
         StartPosition = FormStartPosition.CenterScreen;
@@ -126,10 +126,11 @@ public sealed partial class MainForm : Form
         top.SetColumnSpan(buttons, 4);
         top.Controls.Add(buttons, 0, 2);
         InitializeDownloadInterval(top);
+        InitializeSaveCheckbox(top);
         top.SetColumnSpan(lblPublisherSummary, 4);
-        top.Controls.Add(lblPublisherSummary, 0, 4);
+        top.Controls.Add(lblPublisherSummary, 0, 5);
 
-        var splitOuter = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 315 };
+        var splitOuter = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 180, FixedPanel = FixedPanel.Panel1 };
         var queueTabs = new TabControl { Dock = DockStyle.Fill };
         var queuePage = new TabPage("Download queue");
         queuePage.Controls.Add(grid);
@@ -160,6 +161,7 @@ public sealed partial class MainForm : Form
         grid.DataSource = jobs;
         InitializeColumnFilters(queuePage);
         InitializeDiagnosticsUi(buttons);
+        InitializeCompactLayout(top, buttons);
 
         txtFolder.Text = downloadFolder;
         if (inputPaths is { } paths)
@@ -191,28 +193,21 @@ public sealed partial class MainForm : Form
             if (HasActiveTransfers || logoutRequested || logoutInProgress) { e.Cancel = true; lblCurrent.Text = "Chờ các lượt truyền/đăng xuất hoàn tất trước khi đóng."; return; }
             SaveStateSnapshot(); SaveRunSummary(false);
             paused = true; queueRunning = false; manualLoginMode = true;
-            pipelineTimer.Stop(); attentionTimer.Stop(); pdfLookupTimer.Stop();
+            pipelineTimer.Stop(); attentionTimer.Stop(); pdfLookupTimer.Stop(); saveCheckboxTimer.Stop();
         };
-        FormClosed += (_, _) => { pipelineTimer.Dispose(); attentionTimer.Dispose(); pdfLookupTimer.Dispose(); };
+        FormClosed += (_, _) => { pipelineTimer.Dispose(); attentionTimer.Dispose(); pdfLookupTimer.Dispose(); saveCheckboxTimer.Dispose(); };
     }
 
     private void ExpandDefaultBrowserArea(SplitContainer split)
     {
         PerformLayout();
-        int desiredBrowserHeight = split.Panel2.ClientSize.Height * 2;
-        int minimumTableHeight = Math.Min(220, Math.Max(100, split.Height / 2));
-        var workArea = Screen.FromControl(this).WorkingArea;
-        int missingHeight = minimumTableHeight + split.SplitterWidth + desiredBrowserHeight - split.Height;
-        int growBy = Math.Min(Math.Max(0, missingHeight), Math.Max(0, workArea.Height - Height));
-        if (growBy > 0)
-        {
-            Height += growBy;
-            Top = Math.Max(workArea.Top, Math.Min(Top, workArea.Bottom - Height));
-            PerformLayout();
-        }
-        split.Panel1MinSize = minimumTableHeight;
-        int maximumTableHeight = Math.Max(minimumTableHeight, split.Height - split.SplitterWidth - split.Panel2MinSize);
-        split.SplitterDistance = Math.Clamp(split.Height - split.SplitterWidth - desiredBrowserHeight, minimumTableHeight, maximumTableHeight);
+        split.Panel1MinSize = Math.Min(80, split.Height / 3);
+        split.Panel2MinSize = Math.Min(100, split.Height / 3);
+        int tableChrome = (libraryTabs?.Height ?? grid.Height) - grid.Height;
+        int desiredHeight = tableChrome + grid.ColumnHeadersHeight + 3 * grid.RowTemplate.Height
+            + SystemInformation.HorizontalScrollBarHeight + 2;
+        int maximum = Math.Max(split.Panel1MinSize, split.Height - split.SplitterWidth - split.Panel2MinSize);
+        split.SplitterDistance = Math.Clamp(desiredHeight, split.Panel1MinSize, maximum);
     }
 
     private async Task InitializeWebViewAsync()
