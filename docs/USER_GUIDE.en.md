@@ -1,21 +1,23 @@
 # User guide — V5.3.2
 
+Some controls in the Windows application are localized. This guide uses English descriptions of those controls; **Switch profile** is next to the access-mode selector. In the library workspace, select a source to sign in, open a sample article, or check its page.
+
 ## Complementary PTIT/IP and VNU downloads in V5.3.2
 
-Use the same CSV and output folder. Download through PTIT/IP, wait for active transfers, choose VNU and press **Đổi hồ sơ**. The new window automatically loads the shared queue, retains completed PDFs and requeues unfinished articles. Prepare library sign-in if needed, then press **START**. Switching back retains the VNU completions too. Cookies and logins remain separate. Loading the CSV again immediately after a switch is unnecessary; downloads start only when you press START.
+Use the same CSV and output folder. Download through PTIT/IP, wait for active transfers, choose VNU and press **Switch profile**. The new window automatically loads the shared queue, retains completed PDFs and requeues unfinished articles. Prepare library sign-in if needed, then press **START**. Switching back retains the VNU completions too. Cookies and logins remain separate. Loading the CSV again immediately after a switch is unnecessary; downloads start only when you press START.
 
 Progress is stored under `%LOCALAPPDATA%\PaperBatchDownloader\SharedQueues\<batch>`, keyed by CSV path, content and output folder. Reopen the same inputs to restore it after restart. Missing/incomplete PDFs are queued again. Run reports distinguish existing completions from completions during the current run.
 
 
 ## V5.3.2: access modes and downloads
 
-Select **PTIT/IP** for your current entitled network, or **VNU — OpenAthens**, then **Đổi hồ sơ** to switch. PTIT/IP opens publishers directly and does not change your IP/VPN. VNU routes supported article pages through the library portal; sign in through **LIBRARY ACCESS** first. Complete any sign-in/CAPTCHA yourself.
+Select **PTIT/IP** for your current entitled network, or **VNU — OpenAthens**, then **Switch profile** to switch. PTIT/IP opens publishers directly and does not change your IP/VPN. VNU routes supported article pages through the library portal; sign in through **LIBRARY ACCESS** first. Complete any sign-in/CAPTCHA yourself.
 
 Each mode has separate cookies and diagnostics; both modes share queue progress for the same CSV and output folder. Old V5.2.11 data is retained but not imported: sign in again on first use. Do not run two windows using the same profile.
 
-**PDF đồng thời** controls concurrent native downloads (default 2, range 1–4); **PDF/nguồn** caps each publisher (default 1, range 1–2). The browser can navigate ahead while earlier downloads transfer. Direct anonymous HTTP downloads in IP mode remain serial. Throughput depends on source and network.
+**Concurrent PDFs** controls concurrent native downloads (default 2, range 1–4); **PDFs per publisher** caps each publisher (default 1, range 1–2). The browser can navigate ahead while earlier downloads transfer. Direct anonymous HTTP downloads in IP mode remain serial. Throughput depends on source and network.
 
-**Đăng xuất VNU** pauses the queue, waits for transfers, requests OpenAthens sign-out and clears VNU browser cookies, site data, cache and service workers. It retains PDFs and queue state. Other browsers and all publisher server-side sessions are not necessarily signed out. If clearing fails, restart before continuing.
+**Sign out of VNU** pauses the queue, waits for transfers, requests OpenAthens sign-out and clears VNU browser cookies, site data, cache and service workers. It retains PDFs and queue state. Other browsers and all publisher server-side sessions are not necessarily signed out. If clearing fails, restart before continuing.
 
 ScienceDirect error pages with **CPE00002** suspend that publisher for the current pass and defer its pending articles while other sources continue. Retry only after access returns. The browser area starts taller; drag its divider to resize. Column filters affect display only.
 
@@ -24,7 +26,7 @@ For comparison runs, use the same CSV, equal limits and separate empty PDF folde
 
 ## Install and start
 
-Download `PaperBatchDownloader-v5.3.2-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete archive to a writable folder, and run `PaperBatchDownloader-v5.3.2.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
+Download `PaperBatchDownloader-v5.3.2-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete English-documentation archive to a writable folder, and run `PaperBatchDownloader-v5.3.2.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
 
 This release targets Windows x64 with Microsoft WebView2 Evergreen. Install the [WebView2 Runtime from Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) if the browser cannot initialize. There is no native macOS, Linux, or ARM64 package in this release. An Internet connection and writable PDF folder are required. The executable is not code-signed; obtain it from this repository's Releases and compare its archive SHA-256 with the supplied checksum file.
 
@@ -66,7 +68,7 @@ doi,title,save_as
 | `best_oa_landing_page`, or `landing_page` | Article page; the former wins if both are present. |
 | `url` | Fallback URL, or the only field for a simple list. |
 | `title` | Display/search title. |
-| `save_as` | Optional unique `.pdf` filename without any directory path. |
+| `save_as`, or `file_name` | Optional unique `.pdf` filename without any directory path. |
 | `publisher`, `source` | Publisher and journal/source metadata used for grouping. |
 | `is_open_access`, `oa_status` | Descriptive metadata; does not confer access. |
 | `record_id`, `openalex_id`, `publication_year` | Optional metadata retained for reporting. |
@@ -77,13 +79,13 @@ Explicit `save_as` filenames are preserved, not silently renamed or overwritten.
 
 ## Sign in before running
 
-Load the CSV, then click **LIBRARY ACCESS**. Select a resource and click **Đăng nhập nguồn** (sign in to source). Complete authentication, MFA and CAPTCHA yourself in the browser below. SSO popups use the same WebView profile. **Nguồn tiếp theo** opens the next source; you do not have to prepare every source before starting.
+Load the CSV, then click **LIBRARY ACCESS**. Select a resource and click **Sign in to source** (sign in to source). Complete authentication, MFA and CAPTCHA yourself in the browser below. SSO popups use the same WebView profile. **Next source** opens the next source; you do not have to prepare every source before starting.
 
 The 14 built-in entry routes were configured for VNU library access: arXiv, BNEUF, IEEE Xplore, MathSciNet, MIT OpenCourseWare, Nature, Open Dissertations, Ovid, Oxford Scholarship Online, ProQuest, ScienceDirect, Scopus, SpringerLink and SpringerOpen. Catalogue/learning resources are not necessarily article-PDF providers. Additional CSV publishers, such as ACM, appear with direct URLs and a note when no VNU portal has been configured.
 
-**For other institutions:** select a source, replace **URL đăng nhập** with your institution's library entry URL, and press **Lưu URL** (save URL). The bundled VNU routes do not provide you with a VNU account or subscription. Sign-in in a separate Chrome/Edge browser does not automatically share cookies with this application. An active OpenAthens session may take you directly to the publisher; otherwise the institutional sign-in screen is an expected step. Sessions can expire.
+**For other institutions:** select a source, replace **Sign-in URL** with your institution's library entry URL, and press **Save URL** (save URL). The bundled VNU routes do not provide you with a VNU account or subscription. Sign-in in a separate Chrome/Edge browser does not automatically share cookies with this application. An active OpenAthens session may take you directly to the publisher; otherwise the institutional sign-in screen is an expected step. Sessions can expire.
 
-**Mở bài mẫu** opens a sample CSV article, preferring one not marked OA if available. After it loads, **Kiểm tra trang** checks its page. Results distinguish login, CAPTCHA, purchase/subscription notices, an unverified PDF link, and a page explicitly confirming access to the matching sample. None proves access to all titles or a completed PDF transfer. Sources with no CSV article have no sample to check.
+**Open sample article** opens a sample CSV article, preferring one not marked OA if available. After it loads, **Check page** checks its page. Results distinguish login, CAPTCHA, purchase/subscription notices, an unverified PDF link, and a page explicitly confirming access to the matching sample. None proves access to all titles or a completed PDF transfer. Sources with no CSV article have no sample to check.
 
 Drag the splitter between the table and browser to give the sign-in page more room. Wait for active PDF transfer/setup to finish before switching to a login source. Access preparation pauses the queue; afterward use **START** for Pending rows or **RETRY INCOMPLETE** for deferred work.
 
