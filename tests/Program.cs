@@ -37,6 +37,7 @@ internal static class Program
                 else if (args.Contains("--paywall-only")) await PaywallRegression.Run();
                 else if (args.Contains("--library-only")) await LibraryAccessRegression.Run();
                 else if (args.Contains("--profiles-only")) await AccessProfileRegression.Run();
+                else if (args.Contains("--interval-only")) await PipelineRegression.RunInterval();
                 else if (args.Contains("--pipeline-only")) await PipelineRegression.Run();
                 else if (args.Contains("--shared-queue-only")) await SharedQueueRegression.Run();
                 else if (args.Contains("--publisher-block-only")) await PublisherBlockRegression.Run();

@@ -10,6 +10,68 @@ using System.Text.Json;
 
 internal static class PipelineRegression
 {
+    public static async Task RunInterval()
+    {
+        await using var server = new SlowPdfServer();
+        string root = Path.Combine(Path.GetTempPath(), "PdfIntervalRegression-" + Guid.NewGuid().ToString("N"));
+        string profile = Path.Combine(root, "profile");
+        Directory.CreateDirectory(root);
+        using var app = new MainForm(profile) { ShowInTaskbar = false, Opacity = 0 };
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        object Field(string name) => typeof(MainForm).GetField(name, flags)!.GetValue(app)!;
+        object? Call(string name, params object[] args) => typeof(MainForm).GetMethod(name, flags)!.Invoke(app, args);
+        void Check(bool value, string message) { if (!value) throw new Exception(message); }
+        async Task Until(Func<bool> condition, int seconds = 20)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(seconds);
+            while (!condition())
+            {
+                if (DateTime.UtcNow > deadline) throw new Exception("Interval timeout: " + ((Label)Field("lblCurrent")).Text);
+                await Task.Delay(25);
+            }
+        }
+        app.Show(); await Until(() => (bool)Field("initialized"));
+        string csv = Path.Combine(root, "papers.csv");
+        File.WriteAllText(csv, "landing_page,publisher,save_as\n" + string.Join("\n", new[] { "a1", "b1", "c1" }.Select(n => $"{server.BaseUrl}/{n},Fixture-{n[0]},{n}.pdf")));
+        ((TextBox)Field("txtCsv")).Text = csv;
+        ((TextBox)Field("txtFolder")).Text = Path.Combine(root, "pdfs");
+        var interval = (NumericUpDown)Field("numDownloadInterval");
+        Check(interval.Value == 0, "New profile should default to continuous downloads");
+        interval.Value = 0.05m; // Three seconds, measured after completion.
+        Call("LoadCsv");
+        var jobs = ((IList)Field("jobs")).Cast<DownloadJob>().ToArray();
+        await (Task)Call("StartQueueAsync")!;
+        await Until(() => jobs[0].Status == JobStatus.Completed && ((Label)Field("lblCurrent")).Text.Contains("Đang nghỉ"));
+        Check(jobs[1].Attempts == 0 && jobs[2].Attempts == 0, "Next paper started before first transfer completed");
+        using (var image = new System.Drawing.Bitmap(app.Width, app.Height))
+        { app.DrawToBitmap(image, app.ClientRectangle); image.Save(Path.GetFullPath("tests/download-interval-v5.3.3.png")); }
+        await Task.Delay(800);
+        Check(jobs[1].Attempts == 0, "Completion interval was not enforced");
+        await (Task)Call("SkipCurrentAsync")!;
+        Check(jobs[0].Status == JobStatus.Completed && jobs[1].Attempts == 0, "SKIP corrupted the completed paper or bypassed waiting");
+        Call("PauseQueue");
+        await Task.Delay(3500);
+        Check(jobs[1].Attempts == 0, "Countdown advanced queue while paused");
+        await (Task)Call("ContinueCurrentAsync")!;
+        await Until(() => jobs[1].Attempts == 1);
+        Check(jobs[0].Status == JobStatus.Completed && jobs[0].Attempts == 1, "Resume re-downloaded a completed paper");
+        interval.Value = 1;
+        await Until(() => jobs[1].Status == JobStatus.Completed && ((Label)Field("lblCurrent")).Text.Contains("Đang nghỉ"));
+        await Task.Delay(600);
+        Check(jobs[2].Attempts == 0, "Changed interval was ignored");
+        interval.Value = 0;
+        await Until(() => jobs[2].Attempts == 1, 3);
+        interval.Value = 1;
+        await Until(() => jobs.All(j => j.Status == JobStatus.Completed) && !(bool)Field("queueRunning"));
+        Check(server.MaximumActive == 1, "Nonzero interval allowed overlapping PDF transfers");
+        Check(jobs.All(j => File.Exists(j.FilePath)), "Interval queue lost a PDF");
+        interval.Value = 3;
+        using var reopened = new MainForm(profile);
+        Check(((NumericUpDown)typeof(MainForm).GetField("numDownloadInterval", flags)!.GetValue(reopened)!).Value == 3, "Interval setting was not restored");
+        app.Close();
+        Console.WriteLine("PASS: completion-based interval, serial transfers, countdown, pause/resume, safe SKIP, live changes/zero, final completion, saved setting");
+    }
+
     public static async Task Run()
     {
         await RunCase(AccessMode.PtitIp, logout: false);
