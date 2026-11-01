@@ -60,7 +60,12 @@ internal static class SaveExitRegression
         await Load("<script>window.clicks=0;window.clickTimes=[];</script><input type=checkbox id=save onclick='window.clicks++;window.clickTimes.push(performance.now());if(window.clicks&lt;3)event.preventDefault()'><label for=save>Save your job and exit.</label>");
         // Set the handler directly to avoid HTML entity differences inside inline script attributes.
         await core.ExecuteScriptAsync("document.getElementById('save').onclick = function(e) { window.clicks++; window.clickTimes.push(performance.now()); if (window.clicks < 3) e.preventDefault(); };");
-        Check(await core.ExecuteScriptAsync(script) != "null", "Labeled checkbox was not found");
+        var renderDeadline = DateTime.UtcNow.AddSeconds(10);
+        while (await core.ExecuteScriptAsync(script) == "null")
+        {
+            Check(DateTime.UtcNow < renderDeadline, "Labeled checkbox was not found after rendering");
+            await Task.Delay(50);
+        }
         var elapsed = Stopwatch.StartNew();
         await CheckTick();
         await Task.Delay(1000);
