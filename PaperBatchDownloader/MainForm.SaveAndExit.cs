@@ -117,7 +117,7 @@ public sealed partial class MainForm
     private const string SaveCheckboxScript = """
         (() => {
           const normalize = s => (s || '').replace(/\s+/g, ' ').trim();
-          const phrase = s => /^Verify you are human\.$/i.test(normalize(s));
+          const phrase = s => /^Save your job and exit\.$/i.test(normalize(s));
           const visible = el => {
             const r = el.getBoundingClientRect(), s = el.ownerDocument.defaultView.getComputedStyle(el);
             return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none';
