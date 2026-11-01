@@ -9,6 +9,7 @@ public sealed partial class MainForm
 {
     public AccessMode CurrentAccessMode { get; }
     public AccessMode? RequestedAccessMode { get; private set; }
+    public (string CsvPath, string DownloadFolder)? RequestedInputPaths { get; private set; }
     private string ProfileId => CurrentAccessMode == AccessMode.VnuAccount ? "VNU_ACCOUNT" : "PTIT_IP";
     private string ProfileDataPath { get; }
     private static string DefaultProfilePath(AccessMode mode) => Path.Combine(
@@ -38,7 +39,9 @@ public sealed partial class MainForm
             if (target == CurrentAccessMode) return;
             PauseQueue();
             manualLoginMode = true;
+            SaveStateSnapshot();
             web.CoreWebView2?.Stop();
+            RequestedInputPaths = (txtCsv.Text, txtFolder.Text);
             RequestedAccessMode = target;
             LogDiagnostic("profile-switch-requested", null, new { target = target.ToString() });
             Close(); // Program creates a fresh form: no old queue callbacks or browser cookies cross profiles.

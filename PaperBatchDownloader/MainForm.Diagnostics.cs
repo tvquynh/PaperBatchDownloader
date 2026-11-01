@@ -82,7 +82,7 @@ public sealed partial class MainForm
 
     private void InitializeDiagnosticsBrowser()
     {
-        LogDiagnostic("session-start", null, new { version = "5.3.0", build = "ui1", browser = web.CoreWebView2.Environment.BrowserVersionString,
+        LogDiagnostic("session-start", null, new { version = "5.3.2", browser = web.CoreWebView2.Environment.BrowserVersionString,
             profileId = ProfileId, accessMode = CurrentAccessMode.ToString() });
         web.CoreWebView2.NavigationStarting += (_, e) =>
             LogDiagnostic("navigation-start", DiagnosticJob, new { e.NavigationId, e.Uri, e.IsRedirected, e.Cancel });

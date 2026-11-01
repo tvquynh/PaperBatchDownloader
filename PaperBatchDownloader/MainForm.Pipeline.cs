@@ -26,6 +26,7 @@ public sealed partial class MainForm
     private string loadedCsvPath = "";
     private DateTimeOffset runStartedUtc;
     private bool runFinished;
+    private readonly HashSet<int> completedAtRunStart = new();
 
     private void StartPipelineTimer()
     {
@@ -122,10 +123,13 @@ public sealed partial class MainForm
         runId = Guid.NewGuid().ToString("N");
         runFinished = false;
         runStartedUtc = DateTimeOffset.UtcNow;
+        completedAtRunStart.Clear();
+        foreach (var job in jobs.Where(j => j.Status == JobStatus.Completed)) completedAtRunStart.Add(job.Id);
         publisherCooldown.Clear(); publisherFailures.Clear();
         LogDiagnostic("run-start", null, new { action, csvName, csvSha256, rows = jobs.Count,
             maxTransfers = (int)numTransfers.Value, maxPerPublisher = (int)numPublisherTransfers.Value,
-            waitSeconds = (int)numWaitSeconds.Value, outputFolder = downloadFolder });
+            waitSeconds = (int)numWaitSeconds.Value, outputFolder = downloadFolder,
+            alreadyCompletedAtStart = completedAtRunStart.Count });
         return true;
     }
 
@@ -154,6 +158,8 @@ public sealed partial class MainForm
             var report = new { runId, profileId = ProfileId, accessMode = CurrentAccessMode.ToString(), csvName, csvSha256,
                 finished = runFinished, startedUtc = runStartedUtc, endedUtc = DateTimeOffset.UtcNow,
                 elapsedSeconds = (DateTimeOffset.UtcNow - runStartedUtc).TotalSeconds,
+                alreadyCompletedAtStart = completedAtRunStart.Count,
+                completedDuringRun = jobs.Count(j => j.Status == JobStatus.Completed && !completedAtRunStart.Contains(j.Id)),
                 maxTransfers = (int)numTransfers.Value, maxPerPublisher = (int)numPublisherTransfers.Value,
                 rows = jobs.Count, statuses = jobs.GroupBy(j => j.StatusText).ToDictionary(g => g.Key, g => g.Count()),
                 publishers = jobs.GroupBy(j => j.PublisherKey).ToDictionary(g => g.Key,

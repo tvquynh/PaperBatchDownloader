@@ -64,12 +64,15 @@ public sealed partial class MainForm : Form
     private sealed class SavedState
     {
         public string CsvPath { get; set; } = "";
+        public string CsvSha256 { get; set; } = "";
+        public string OutputFolder { get; set; } = "";
         public List<SavedJobState> Jobs { get; set; } = new();
     }
     private sealed class SavedJobState
     {
         public int Id { get; set; }
         public string Doi { get; set; } = "";
+        public string Url { get; set; } = "";
         public JobStatus Status { get; set; }
         public string FilePath { get; set; } = "";
         public string PdfUrl { get; set; } = "";
@@ -86,13 +89,15 @@ public sealed partial class MainForm : Form
 
     private readonly string? browserProfilePath;
 
-    public MainForm(string? browserProfilePath = null, AccessMode accessMode = AccessMode.PtitIp)
+    public MainForm(string? browserProfilePath = null, AccessMode accessMode = AccessMode.PtitIp,
+        (string CsvPath, string DownloadFolder)? inputPaths = null, string? sharedQueueRoot = null)
     {
         CurrentAccessMode = accessMode;
         ProfileDataPath = browserProfilePath ?? DefaultProfilePath(accessMode);
         this.browserProfilePath = browserProfilePath ?? Path.Combine(ProfileDataPath, "Browser");
-        downloadFolder = Path.Combine(downloadFolder, ProfileId);
-        Text = "Paper Batch Downloader V5.3.0 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
+        this.sharedQueueRoot = sharedQueueRoot ?? (browserProfilePath is null
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader", "SharedQueues") : null);
+        Text = "Paper Batch Downloader V5.3.2 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
         Width = 1450;
         Height = 900;
         StartPosition = FormStartPosition.CenterScreen;
@@ -156,6 +161,11 @@ public sealed partial class MainForm : Form
         InitializeDiagnosticsUi(buttons);
 
         txtFolder.Text = downloadFolder;
+        if (inputPaths is { } paths)
+        {
+            txtCsv.Text = paths.CsvPath;
+            txtFolder.Text = paths.DownloadFolder;
+        }
         btnCsv.Click += (_, _) => ChooseCsv();
         btnFolder.Click += (_, _) => ChooseFolder();
         btnLoad.Click += (_, _) => LoadCsv();
@@ -173,6 +183,7 @@ public sealed partial class MainForm : Form
         {
             ExpandDefaultBrowserArea(splitOuter);
             await InitializeWebViewAsync();
+            if (inputPaths is not null) LoadQueueAfterAccessSwitch();
         };
         FormClosing += (_, e) =>
         {
@@ -372,7 +383,9 @@ public sealed partial class MainForm : Form
             jobs.Clear();
             foreach (var j in CsvUtils.ReadJobs(txtCsv.Text)) jobs.Add(j);
             currentIndex = -1;
+            InitializeQueueStorage();
             RestoreStateSnapshot();
+            RestoreLegacyCompletedPdfs();
             RegisterLoadedBatch();
             RefreshLibraryResources();
             UpdateStats();
@@ -388,6 +401,7 @@ public sealed partial class MainForm : Form
         if (HasActiveTransfers) { lblCurrent.Text = "Chờ các lượt truyền hiện tại hoàn tất trước khi mở lượt chạy mới."; return; }
         if (!initialized) { MessageBox.Show("WebView2 is not ready."); return; }
         if (jobs.Count == 0) { MessageBox.Show("Load a CSV first."); return; }
+        if (!ReloadForChangedOutputFolder()) return;
         if (!PrepareDownloadFolder()) return;
 
         paused = false;
@@ -1092,6 +1106,7 @@ public sealed partial class MainForm : Form
         if (profileUnavailable || logoutInProgress || logoutRequested) return;
         if (HasActiveTransfers) { lblCurrent.Text = "Chờ truyền PDF hoàn tất trước khi tạo lượt thử lại."; return; }
         if (jobs.Count == 0) return;
+        if (!ReloadForChangedOutputFolder()) return;
         if (!PrepareDownloadFolder()) return;
         foreach (var job in jobs)
         {
@@ -2062,16 +2077,20 @@ public sealed partial class MainForm : Form
         {
             if (loadedCsvPath.Length > 0 && Path.GetFullPath(txtCsv.Text.Trim()) != loadedCsvPath) return;
             if (jobs.Count == 0) return;
-            var folder = Path.Combine(ProfileDataPath, "QueueState");
+            if (!QueueInputsMatch()) return;
+            var folder = QueueStateFolder;
             Directory.CreateDirectory(folder);
             CsvUtils.WriteResults(Path.Combine(folder, "last_results.csv"), jobs);
             var state = new SavedState
             {
                 CsvPath = Path.GetFullPath(txtCsv.Text.Trim()),
+                CsvSha256 = queueCsvHash,
+                OutputFolder = queueOutputFolder,
                 Jobs = jobs.Select(j => new SavedJobState
                 {
                     Id = j.Id,
                     Doi = j.Doi,
+                    Url = j.Url,
                     Status = j.Status,
                     FilePath = j.FilePath,
                     PdfUrl = j.PdfUrl,
@@ -2082,7 +2101,9 @@ public sealed partial class MainForm : Form
                     Attempts = j.Attempts
                 }).ToList()
             };
-            File.WriteAllText(Path.Combine(folder, "state_v51.json"), JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true }));
+            string stateFile = Path.Combine(folder, "state_v51.json");
+            File.WriteAllText(stateFile + ".tmp", JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(stateFile + ".tmp", stateFile, true);
         }
         catch { }
     }
@@ -2091,21 +2112,24 @@ public sealed partial class MainForm : Form
     {
         try
         {
-            var folder = Path.Combine(ProfileDataPath, "QueueState");
+            var folder = QueueStateFolder;
             var path = Path.Combine(folder, "state_v51.json");
             if (!File.Exists(path) || string.IsNullOrWhiteSpace(txtCsv.Text)) return;
             var state = JsonSerializer.Deserialize<SavedState>(File.ReadAllText(path));
             if (state is null) return;
             if (!string.Equals(Path.GetFullPath(state.CsvPath), Path.GetFullPath(txtCsv.Text.Trim()), StringComparison.OrdinalIgnoreCase)) return;
+            if (state.CsvSha256.Length > 0 && state.CsvSha256 != queueCsvHash) return;
+            if (state.OutputFolder.Length > 0 && !SamePath(state.OutputFolder, txtFolder.Text)) return;
 
             var byDoi = state.Jobs.Where(x => !string.IsNullOrWhiteSpace(x.Doi)).GroupBy(x => x.Doi, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
             var byId = state.Jobs.ToDictionary(x => x.Id, x => x);
             foreach (var job in jobs)
             {
                 SavedJobState? saved = null;
-                if (!string.IsNullOrWhiteSpace(job.Doi)) byDoi.TryGetValue(job.Doi, out saved);
+                if (state.CsvSha256.Length == 0 && !string.IsNullOrWhiteSpace(job.Doi)) byDoi.TryGetValue(job.Doi, out saved);
                 if (saved is null) byId.TryGetValue(job.Id, out saved);
                 if (saved is null) continue;
+                if (state.CsvSha256.Length > 0 && saved.Url != job.Url) continue;
 
                 job.Attempts = saved.Attempts;
                 job.PdfUrl = saved.PdfUrl;
@@ -2128,8 +2152,15 @@ public sealed partial class MainForm : Form
                     job.Status = JobStatus.Deferred;
                     job.DeferredReason = "Previous download filename does not match save_as";
                 }
-                else if (saved.Status == JobStatus.Completed && File.Exists(saved.FilePath) && FileUtils.HasPdfMagic(saved.FilePath))
+                else if (saved.Status == JobStatus.Completed && FileUtils.HasCompletePdf(saved.FilePath)
+                    && (state.OutputFolder.Length == 0 || SamePath(Path.GetDirectoryName(saved.FilePath)!, txtFolder.Text)))
                     job.Status = JobStatus.Completed;
+                else if (saved.Status == JobStatus.Completed)
+                {
+                    job.Status = JobStatus.Pending;
+                    job.FilePath = ""; job.PdfUrl = "";
+                    job.Error = "Previous completed PDF is missing or incomplete; queued again.";
+                }
                 else if (saved.Status is JobStatus.Deferred or JobStatus.Downloading
                     && !string.IsNullOrWhiteSpace(job.SaveAs)
                     && Path.GetFileName(saved.FilePath).Equals(job.SaveAs, StringComparison.OrdinalIgnoreCase)
