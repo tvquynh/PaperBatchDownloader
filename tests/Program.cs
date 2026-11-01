@@ -38,11 +38,12 @@ internal static class Program
                 else if (args.Contains("--library-only")) await LibraryAccessRegression.Run();
                 else if (args.Contains("--profiles-only")) await AccessProfileRegression.Run();
                 else if (args.Contains("--pipeline-only")) await PipelineRegression.Run();
+                else if (args.Contains("--shared-queue-only")) await SharedQueueRegression.Run();
                 else if (args.Contains("--publisher-block-only")) await PublisherBlockRegression.Run();
                 else if (args.Contains("--inspect-sciencedirect")) await InspectScienceDirect.Run(web);
                 else if (args.Contains("--live-sciencedirect")) await InspectScienceDirect.Download();
                 else if (args.Contains("--live-springer")) await InspectScienceDirect.Download(springer:true);
-                else { await PublisherBlockRegression.Run(); await AccessProfileRegression.Run(); await PipelineRegression.Run(); await LibraryAccessRegression.Run(); await FilterRegression.Run(); await PaywallRegression.Run(); await Run(web); await RecoveryRegression.Run(); await QueueRegression.Run(); Console.WriteLine("PASS: all IEEE regression checks"); }
+                else { await SharedQueueRegression.Run(); await PublisherBlockRegression.Run(); await AccessProfileRegression.Run(); await PipelineRegression.Run(); await LibraryAccessRegression.Run(); await FilterRegression.Run(); await PaywallRegression.Run(); await Run(web); await RecoveryRegression.Run(); await QueueRegression.Run(); Console.WriteLine("PASS: all IEEE regression checks"); }
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); Environment.ExitCode = 1; }
             finally { form.Close(); }

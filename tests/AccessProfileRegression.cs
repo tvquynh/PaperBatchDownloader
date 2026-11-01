@@ -107,7 +107,31 @@ internal static class AccessProfileRegression
         vnu.PerformLayout();
         using (var image = new System.Drawing.Bitmap(vnu.Width, vnu.Height))
         { vnu.DrawToBitmap(image, vnu.ClientRectangle); image.Save(Path.GetFullPath("tests/access-profiles-v5.3.0-test1.png")); }
-        ip.Close(); vnu.Close();
+        IEnumerable<Control> Descendants(Control parent) => parent.Controls.Cast<Control>()
+            .SelectMany(child => new[] { child }.Concat(Descendants(child)));
+        void Switch(MainForm app, int modeIndex)
+        {
+            ((ComboBox)Field(app, "cmbAccessMode")).SelectedIndex = modeIndex;
+            Descendants(app).OfType<Button>().Single(b => b.Text == "Đổi hồ sơ").PerformClick();
+        }
+        string selectedFolder = ((TextBox)Field(ip, "txtFolder")).Text;
+        Switch(ip, 1);
+        Check(ip.RequestedAccessMode == AccessMode.VnuAccount, "Switch did not request VNU");
+        using var switched = new MainForm(Path.Combine(root, "switched-vnu"), ip.RequestedAccessMode!.Value,
+            ip.RequestedInputPaths) { Opacity = 0, ShowInTaskbar = false };
+        Check(((TextBox)Field(switched, "txtCsv")).Text == csv
+            && ((TextBox)Field(switched, "txtFolder")).Text == selectedFolder, "Switch changed CSV/output selections");
+        Check(((IList)Field(switched, "jobs")).Count == 0, "Switch carried old profile queue jobs");
+        await Ready(switched);
+        ((TextBox)Field(switched, "txtCsv")).Text = "";
+        ((TextBox)Field(switched, "txtFolder")).Text = "";
+        Switch(switched, 0);
+        using var returned = new MainForm(Path.Combine(root, "returned-ip"), switched.RequestedAccessMode!.Value,
+            switched.RequestedInputPaths);
+        Check(((TextBox)Field(returned, "txtCsv")).Text == ""
+            && ((TextBox)Field(returned, "txtFolder")).Text == "", "Switch replaced blank selections with defaults");
+        Console.WriteLine("PASS: profile switches preserve exact CSV/output fields in both directions, including blanks, without carrying queue jobs");
+        vnu.Close();
         Console.WriteLine("PASS: isolated PTIT/VNU cookies and data paths; VNU routing; IEEE zero-padding; file_name import; automatic Continue; VNU logout retains PTIT and PDFs");
     }
 }
