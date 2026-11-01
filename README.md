@@ -74,3 +74,7 @@ Open a GitHub issue with the app version, Windows/WebView2 version, a public DOI
 ## License
 
 [MIT](LICENSE), copyright 2026 Quynh Trinh (tvquynh). Dependency notices and licenses are included separately in `third_party/`. Paper metadata and linked publications remain subject to their respective sources and licenses.
+
+## Companion utility
+
+[Timed Mouse Clicker](TimedMouseClicker/README.md) is a separate Windows tool for one delayed mouse click, with coordinate capture, a countdown and F8 cancellation. [Download version 1.0.0](https://github.com/tvquynh/PaperBatchDownloader/releases/tag/clicker-v1.0.0).
