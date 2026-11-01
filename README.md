@@ -1,6 +1,6 @@
 # Paper Batch Downloader
 
-**V5.3.0 · Windows x64 · C# / .NET 8 / WebView2 · MIT**
+**V5.3.2 · Windows x64 · C# / .NET 8 / WebView2 · MIT**
 
 Download research-paper PDFs from a CSV using an embedded browser, your existing publisher/library access, and a resumable queue. Complete institutional sign-in and CAPTCHA yourself in the application. Includes a library-access workspace, column filters, per-article decisions, progress recovery, and local diagnostics.
 
@@ -8,23 +8,24 @@ Download research-paper PDFs from a CSV using an embedded browser, your existing
 
 ## Bắt đầu nhanh
 
-1. Trong **Releases**, tải `PaperBatchDownloader-v5.3.0-win-x64-versioned.zip`; giải nén vào thư mục có quyền ghi.
-2. Mở `PaperBatchDownloader-v5.3.0.exe`. Nếu thiếu WebView2, cài [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
+1. Trong **Releases**, tải `PaperBatchDownloader-v5.3.2-win-x64.zip`; giải nén vào thư mục có quyền ghi.
+2. Mở `PaperBatchDownloader-v5.3.2.exe`. Nếu thiếu WebView2, cài [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
 3. Bấm **CSV…**, chọn `examples/quickstart_oa.csv`, rồi **Load CSV**.
 4. Chọn thư mục kết quả mới bằng **Folder…**.
 5. Chọn PTIT/IP hoặc VNU và bấm **Đổi hồ sơ**. Với VNU: **LIBRARY ACCESS → Đăng nhập nguồn → Mở bài mẫu → Kiểm tra trang**.
-6. Bấm **START**. Sau khi xong, dùng **Export result CSV** để lưu báo cáo.
+6. Bấm **START**. Để tải bổ sung bằng chế độ khác, chờ truyền xong rồi **Đổi hồ sơ**, giữ cùng CSV/thư mục và bấm **START** tiếp. Sau khi xong, dùng **Export result CSV** để lưu báo cáo.
 
 Bản ZIP chứa .NET runtime; người dùng không cần cài .NET SDK để chạy. Ứng dụng dành cho Windows x64 với WebView2 Evergreen; không có bản macOS/Linux hoặc ARM64 native trong release này. Không cần API key.
 
 ## Quick start
 
-Download and extract the Windows ZIP from Releases, run `PaperBatchDownloader-v5.3.0.exe`, load `examples/quickstart_oa.csv`, choose a new output folder, and press **START**. If your articles need institutional access, prepare that session in **LIBRARY ACCESS** before starting. See the guides for resuming, CSV fields, and troubleshooting.
+Download and extract the Windows ZIP from Releases, run `PaperBatchDownloader-v5.3.2.exe`, load `examples/quickstart_oa.csv`, choose a new output folder, and press **START**. If your articles need institutional access, prepare that session in **LIBRARY ACCESS** before starting. See the guides for resuming, CSV fields, and troubleshooting.
 
 ## Features
 
 - CSV input: DOI, article landing page, or direct PDF; optional fixed output filenames.
-- Separate PTIT/IP and VNU/OpenAthens profiles, with VNU logout and profile-specific diagnostics.
+- Shared queue progress across PTIT/IP and VNU for the same CSV and output folder; switch access modes to download only unfinished papers.
+- Separate browser cookies and sign-in sessions, with VNU logout and profile-specific diagnostics.
 - Overlapping native PDF downloads with global/per-publisher caps; ScienceDirect CPE block recognition.
 - Larger default browser area and a simplified interface.
 - Fourteen VNU library entry routes, editable in VNU mode; additional publishers from the CSV appear with direct entry URLs. Users at other institutions can edit the URLs.

@@ -1,5 +1,17 @@
 # Changelog
 
+## V5.3.2 — 2026-11-01
+
+- Share queue progress across PTIT/IP and VNU for the same CSV and PDF folder.
+- Automatically load shared progress and requeue unfinished articles after switching access mode.
+- Recover verified old PDF files, retain suggested filenames, and requeue missing completions.
+- Separate existing completions from new downloads in run summaries.
+- Keep browser profiles/cookies and diagnostic logs separate.
+
+## V5.3.1 — 2026-11-01
+
+- Preserve CSV/output selections when switching access profiles; executable names include the version.
+
 ## V5.3.0 — 2026-11-01
 
 - Separate PTIT/IP and VNU profiles; VNU logout with transfer-safe browser-data clearing.
