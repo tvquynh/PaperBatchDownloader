@@ -17,9 +17,9 @@
 
 Ứng dụng tải PDF từ danh sách CSV bằng trình duyệt WebView2, sử dụng quyền truy cập mà bạn có. Giao diện điều khiển chính dùng tiếng Anh; phần truy cập thư viện có nhãn tiếng Việt.
 
-1. Mở [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), tải **PaperBatchDownloader-v5.2.11-win-x64.zip**. Không chọn “Source code” nếu chỉ muốn chạy chương trình.
+1. Mở [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), tải **PaperBatchDownloader-v5.3.0-win-x64-versioned.zip**. Không chọn “Source code” nếu chỉ muốn chạy chương trình.
 2. Giải nén toàn bộ ZIP, chẳng hạn vào `Documents\PaperBatchDownloader`. Không chạy trực tiếp trong cửa sổ ZIP.
-3. Mở `PaperBatchDownloader.exe` bằng tài khoản Windows thông thường. Không cần chạy quyền quản trị cho hoạt động tải thông thường.
+3. Mở `PaperBatchDownloader-v5.3.0.exe` bằng tài khoản Windows thông thường. Không cần chạy quyền quản trị cho hoạt động tải thông thường.
 4. Chờ thông báo **Browser ready**.
 5. Nếu báo thiếu WebView2, cài **Evergreen Runtime** từ [Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section), rồi mở lại ứng dụng. Bản ZIP đã chứa .NET runtime nên không cần .NET SDK để chạy.
 

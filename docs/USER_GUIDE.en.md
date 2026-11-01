@@ -17,7 +17,7 @@ For comparison runs, use the same CSV, equal limits and separate empty PDF folde
 
 ## Install and start
 
-Download `PaperBatchDownloader-v5.2.11-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete archive to a writable folder, and run `PaperBatchDownloader.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
+Download `PaperBatchDownloader-v5.3.0-win-x64-versioned.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete archive to a writable folder, and run `PaperBatchDownloader-v5.3.0.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
 
 This release targets Windows x64 with Microsoft WebView2 Evergreen. Install the [WebView2 Runtime from Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) if the browser cannot initialize. There is no native macOS, Linux, or ARM64 package in this release. An Internet connection and writable PDF folder are required. The executable is not code-signed; obtain it from this repository's Releases and compare its archive SHA-256 with the supplied checksum file.
 
