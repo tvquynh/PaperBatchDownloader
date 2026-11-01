@@ -6,7 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <AssemblyName>PaperBatchDownloader</AssemblyName>
+    <Version>5.3.0</Version>
+    <AssemblyName>PaperBatchDownloader-v$(Version)</AssemblyName>
     <RootNamespace>PaperBatchDownloader</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
