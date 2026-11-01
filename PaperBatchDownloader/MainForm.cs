@@ -97,7 +97,7 @@ public sealed partial class MainForm : Form
         this.browserProfilePath = browserProfilePath ?? Path.Combine(ProfileDataPath, "Browser");
         this.sharedQueueRoot = sharedQueueRoot ?? (browserProfilePath is null
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PaperBatchDownloader", "SharedQueues") : null);
-        Text = "Paper Batch Downloader V5.3.2 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
+        Text = "Paper Batch Downloader V5.3.3 — " + (CurrentAccessMode == AccessMode.VnuAccount ? "VNU" : "PTIT/IP");
         Width = 1450;
         Height = 900;
         StartPosition = FormStartPosition.CenterScreen;
@@ -125,8 +125,9 @@ public sealed partial class MainForm : Form
         InitializeAccessProfiles(buttons);
         top.SetColumnSpan(buttons, 4);
         top.Controls.Add(buttons, 0, 2);
+        InitializeDownloadInterval(top);
         top.SetColumnSpan(lblPublisherSummary, 4);
-        top.Controls.Add(lblPublisherSummary, 0, 3);
+        top.Controls.Add(lblPublisherSummary, 0, 4);
 
         var splitOuter = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 315 };
         var queueTabs = new TabControl { Dock = DockStyle.Fill };
@@ -443,6 +444,7 @@ public sealed partial class MainForm : Form
     private async Task MoveNextCoreAsync()
     {
         if (!queueRunning || paused) return;
+        if (WaitForDownloadInterval()) return;
         pdfLookupTimer.Stop();
         attentionTimer.Stop();
         attentionJobId = -1;
@@ -2030,6 +2032,11 @@ public sealed partial class MainForm : Form
         if (currentIndex < 0 || currentIndex >= jobs.Count) return;
         var job = jobs[currentIndex];
         manualLoginMode = false;
+        if (job.Status == JobStatus.Completed)
+        {
+            paused = false; queueRunning = true;
+            await MoveNextAsync(); return;
+        }
         if (activeNativeDownloads.ContainsKey(job) || directHttpJobs.Contains(job))
         {
             paused = false; queueRunning = true;
@@ -2056,6 +2063,7 @@ public sealed partial class MainForm : Form
     private async Task SkipCurrentAsync()
     {
         if (currentIndex < 0 || currentIndex >= jobs.Count) return;
+        if (jobs[currentIndex].Status == JobStatus.Completed) return;
         CancelAttentionDeadline(jobs[currentIndex]);
         jobs[currentIndex].Status = JobStatus.Skipped;
         jobs[currentIndex].DeferredReason = "Skipped manually";

@@ -101,6 +101,7 @@ public sealed partial class MainForm
 
     private void RegisterLoadedBatch()
     {
+        lastPaperCompletedTimestamp = null;
         loadedCsvPath = Path.GetFullPath(txtCsv.Text);
         csvName = Path.GetFileName(txtCsv.Text);
         csvSha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(txtCsv.Text))).ToLowerInvariant();
@@ -128,13 +129,14 @@ public sealed partial class MainForm
         publisherCooldown.Clear(); publisherFailures.Clear();
         LogDiagnostic("run-start", null, new { action, csvName, csvSha256, rows = jobs.Count,
             maxTransfers = (int)numTransfers.Value, maxPerPublisher = (int)numPublisherTransfers.Value,
-            waitSeconds = (int)numWaitSeconds.Value, outputFolder = downloadFolder,
+            waitSeconds = (int)numWaitSeconds.Value, downloadIntervalMinutes = numDownloadInterval.Value, outputFolder = downloadFolder,
             alreadyCompletedAtStart = completedAtRunStart.Count });
         return true;
     }
 
     private void RecordDownloadCompletion(DownloadJob job, string path, string completion)
     {
+        lastPaperCompletedTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
         if (!publisherCooldown.TryGetValue(job.PublisherKey, out var until) || until <= DateTimeOffset.UtcNow)
         {
             publisherFailures.Remove(job.PublisherKey);
@@ -161,6 +163,7 @@ public sealed partial class MainForm
                 alreadyCompletedAtStart = completedAtRunStart.Count,
                 completedDuringRun = jobs.Count(j => j.Status == JobStatus.Completed && !completedAtRunStart.Contains(j.Id)),
                 maxTransfers = (int)numTransfers.Value, maxPerPublisher = (int)numPublisherTransfers.Value,
+                downloadIntervalMinutes = numDownloadInterval.Value,
                 rows = jobs.Count, statuses = jobs.GroupBy(j => j.StatusText).ToDictionary(g => g.Key, g => g.Count()),
                 publishers = jobs.GroupBy(j => j.PublisherKey).ToDictionary(g => g.Key,
                     g => g.GroupBy(j => j.StatusText).ToDictionary(s => s.Key, s => s.Count())),
