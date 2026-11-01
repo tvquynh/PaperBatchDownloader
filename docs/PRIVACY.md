@@ -7,8 +7,8 @@ Default local storage on Windows (each mode has its own `Profiles\PTIT_IP` or `P
 | Location under `%LOCALAPPDATA%\PaperBatchDownloader` | Contents |
 | --- | --- |
 | `Profiles\<mode>\Browser\` | Browser-managed cookies, storage, cache and session information. Treat the entire directory as private. |
-| `Profiles\<mode>\QueueState\state_v51.json` | Latest queue's CSV path, article identifiers, statuses, errors, file/PDF URLs and attempts. |
-| `Profiles\<mode>\QueueState\last_results.csv` | Automatically saved latest queue report. |
+| `SharedQueues\<batch>\state_v51.json` | Shared batch CSV path, article identifiers, statuses, errors, file/PDF URLs and attempts. |
+| `SharedQueues\<batch>\last_results.csv` | Automatically saved latest queue report. |
 | `Profiles\<mode>\library_access_urls.json` | Customized library entry URLs. Avoid saving temporary authenticated/session URLs here. |
 | `Profiles\<mode>\Diagnostics\<session>\events.jsonl` | Navigation, relevant HTTP/download events, state changes and page-analysis evidence. |
 | `Profiles\<mode>\Diagnostics\<session>\webview-*.json` | Manually requested page snapshots and analysis, when saved. |
@@ -22,3 +22,5 @@ Before posting an issue, inspect the exact excerpt or snapshot you intend to sha
 Closing/reopening the app does not guarantee a session remains valid: expiry is controlled by the source. If you intentionally want to reset local app data, first close the app after transfers finish and back up the selected PDF folder and any needed queue files. Renaming the local app-data folder is a reversible way to start a new profile; it also disconnects the app from previous saved progress and sessions.
 
 VNU logout waits for transfers, requests OpenAthens sign-out, and clears the VNU browser profile site data/cache. It preserves queue state and PDFs, and does not clear PTIT data or other browsers. Per-run logs include CSV fingerprints, row metadata and performance summaries; treat them as private.
+
+V5.3.2 shares progress, not cookies, between access modes. A queue identity includes the normalized CSV path, content SHA-256 and output folder. Old per-profile queue files are read to recover verified completed PDFs in the selected folder. Existing files are never treated as the correct article solely because their filename matches. Logs distinguish existing completions from completions during the current run.

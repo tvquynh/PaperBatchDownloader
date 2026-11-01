@@ -1,10 +1,21 @@
-# Hướng dẫn sử dụng Paper Batch Downloader V5.3.0
+# Hướng dẫn sử dụng Paper Batch Downloader V5.3.2
 
-## V5.3.0: chọn quyền truy cập và tải
+## Tải bổ sung giữa PTIT/IP và VNU trong V5.3.2
+
+Chọn cùng một CSV và một thư mục PDF cho cả hai chế độ. Tải bằng PTIT/IP trước; sau đó chờ PDF đang truyền xong, chọn VNU và bấm **Đổi hồ sơ**. Ứng dụng tự nạp lại danh sách, giữ các bài Completed có PDF hợp lệ và đưa các bài còn thiếu về Pending. Chuẩn bị đăng nhập VNU trong LIBRARY ACCESS nếu cần, rồi bấm **START**. Khi chuyển về PTIT/IP, thao tác tương tự: các bài vừa tải bằng VNU cũng được giữ lại.
+
+Không cần tạo CSV mới, không cần đổi thư mục và không cần Load CSV lại ngay sau khi đổi hồ sơ. Cookie và đăng nhập vẫn riêng. Không tự bắt đầu tải trước khi bạn bấm START.
+
+Tiến độ dùng chung được lưu tại `%LOCALAPPDATA%\PaperBatchDownloader\SharedQueues\<batch>`. Đường dẫn CSV, nội dung CSV và thư mục PDF tạo thành một bộ tiến độ riêng. Nếu đóng rồi mở lại, chọn lại cùng CSV và thư mục, bấm Load CSV để khôi phục. PDF bị xóa hoặc không còn hoàn chỉnh sẽ được xếp tải lại. Báo cáo lượt chạy phân biệt bài đã có trước và bài hoàn thành trong lượt này.
+
+Các PDF cũ được khôi phục từ trạng thái đã lưu nếu DOI, thư mục, tên tệp và dấu hiệu PDF hoàn chỉnh khớp. Điều này áp dụng cả tên save_as/file_name và tên do nhà xuất bản đặt. Chỉ có một tệp cùng tên mà không có trạng thái khớp chưa đủ để kết luận đúng bài; ứng dụng không tự ghi đè tệp có sẵn. Ứng dụng giữ lại dữ liệu cũ, không tự chuyển PDF sang thư mục khác.
+
+
+## V5.3.2: chọn quyền truy cập và tải
 
 1. Chọn **PTIT/IP — mạng hiện tại** nếu dùng mạng có quyền truy cập. Ứng dụng mở trực tiếp nhà xuất bản, không tự đổi IP hoặc VPN.
 2. Chọn **VNU — OpenAthens**, bấm **Đổi hồ sơ**, rồi vào **LIBRARY ACCESS** để đăng nhập các nguồn cần dùng. Bài hỗ trợ sẽ đi qua cổng thư viện. Bạn tự hoàn tất đăng nhập hoặc CAPTCHA khi nguồn yêu cầu.
-3. Hai chế độ có cookie, trạng thái hàng đợi và log riêng. Bản này không nhập hồ sơ cũ V5.2.11; hãy đăng nhập lại lần đầu. Không mở hai cửa sổ cùng hồ sơ.
+3. Hai chế độ có cookie và log riêng; hàng đợi và tiến độ dùng chung cho cùng CSV và thư mục PDF. Bản này không nhập hồ sơ cũ V5.2.11; hãy đăng nhập lại lần đầu. Không mở hai cửa sổ cùng hồ sơ.
 4. **PDF đồng thời** mặc định 2 (1–4); **PDF/nguồn** mặc định 1 (1–2). Browser có thể mở bài tiếp trong khi PDF trước đang truyền. Tải HTTP trực tiếp trong chế độ IP vẫn tuần tự; tốc độ phụ thuộc nguồn và mạng.
 5. **Đăng xuất VNU** dừng hàng đợi, chờ truyền xong, yêu cầu đăng xuất OpenAthens và xóa cookie/dữ liệu trang/cache của hồ sơ VNU. PDF và hàng đợi được giữ lại. Việc này không đăng xuất trình duyệt khác hoặc bảo đảm chấm dứt mọi phiên phía máy chủ nhà xuất bản. Nếu báo lỗi, đóng và mở lại ứng dụng trước khi dùng tiếp.
 6. Khi gặp trang ScienceDirect có thông báo lỗi kèm mã **CPE00002**, nguồn bị tạm ngưng trong lượt hiện tại; các bài chưa chạy cùng nguồn được Deferred, nguồn khác tiếp tục. Chỉ thử lại sau khi nguồn hoạt động bình thường.
@@ -17,9 +28,9 @@
 
 Ứng dụng tải PDF từ danh sách CSV bằng trình duyệt WebView2, sử dụng quyền truy cập mà bạn có. Giao diện điều khiển chính dùng tiếng Anh; phần truy cập thư viện có nhãn tiếng Việt.
 
-1. Mở [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), tải **PaperBatchDownloader-v5.3.0-win-x64-versioned.zip**. Không chọn “Source code” nếu chỉ muốn chạy chương trình.
+1. Mở [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), tải **PaperBatchDownloader-v5.3.2-win-x64.zip**. Không chọn “Source code” nếu chỉ muốn chạy chương trình.
 2. Giải nén toàn bộ ZIP, chẳng hạn vào `Documents\PaperBatchDownloader`. Không chạy trực tiếp trong cửa sổ ZIP.
-3. Mở `PaperBatchDownloader-v5.3.0.exe` bằng tài khoản Windows thông thường. Không cần chạy quyền quản trị cho hoạt động tải thông thường.
+3. Mở `PaperBatchDownloader-v5.3.2.exe` bằng tài khoản Windows thông thường. Không cần chạy quyền quản trị cho hoạt động tải thông thường.
 4. Chờ thông báo **Browser ready**.
 5. Nếu báo thiếu WebView2, cài **Evergreen Runtime** từ [Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section), rồi mở lại ứng dụng. Bản ZIP đã chứa .NET runtime nên không cần .NET SDK để chạy.
 
@@ -143,7 +154,7 @@ Chuột phải vào ô để copy ô đó, DOI, DOI URL, Selected URL, PDF URL, 
 
 Đóng bản cũ khi không còn lượt truyền PDF đang hoạt động, giải nén bản mới vào thư mục riêng rồi mở EXE mới. Hồ sơ ứng dụng nằm ở LocalAppData nên việc đổi thư mục EXE không chủ động xóa cookie.
 
-Để khôi phục lượt gần nhất: giữ nguyên **đường dẫn tuyệt đối của CSV**, thứ tự/dữ liệu bài và thư mục PDF; Load CSV đó, chọn lại đúng thư mục kết quả, rồi RETRY INCOMPLETE. Bản sao CSV ở vị trí khác được coi là hàng đợi khác. V5.3.0 lưu trạng thái hàng đợi gần nhất, không phải trình quản lý độc lập nhiều dự án.
+Để khôi phục lượt gần nhất: giữ nguyên **đường dẫn tuyệt đối của CSV**, thứ tự/dữ liệu bài và thư mục PDF; Load CSV đó, chọn lại đúng thư mục kết quả, rồi RETRY INCOMPLETE. Bản sao CSV ở vị trí khác được coi là hàng đợi khác. V5.3.2 lưu tiến độ theo đường dẫn/nội dung CSV và thư mục PDF, dùng chung giữa PTIT/IP và VNU.
 
 Nếu muốn một lượt hoàn toàn mới, sao chép CSV sang đường dẫn mới và chọn một thư mục kết quả trống. Không xóa PDF cũ chỉ để tránh lỗi trùng tên; di chuyển/đối chiếu chúng trước. Một số file hoàn tất muộn được khôi phục sau kiểm tra định danh và dấu kết thúc PDF. Các file Springer cũ được nhận diện là phụ lục/tài liệu tham khảo sẽ được hoãn; khi thử lại đúng thư mục, file đó được giữ riêng trong Diagnostics trước khi tải bài chính.
 

@@ -1,10 +1,17 @@
-# User guide — V5.3.0
+# User guide — V5.3.2
 
-## V5.3.0: access modes and downloads
+## Complementary PTIT/IP and VNU downloads in V5.3.2
+
+Use the same CSV and output folder. Download through PTIT/IP, wait for active transfers, choose VNU and press **Đổi hồ sơ**. The new window automatically loads the shared queue, retains completed PDFs and requeues unfinished articles. Prepare library sign-in if needed, then press **START**. Switching back retains the VNU completions too. Cookies and logins remain separate. Loading the CSV again immediately after a switch is unnecessary; downloads start only when you press START.
+
+Progress is stored under `%LOCALAPPDATA%\PaperBatchDownloader\SharedQueues\<batch>`, keyed by CSV path, content and output folder. Reopen the same inputs to restore it after restart. Missing/incomplete PDFs are queued again. Run reports distinguish existing completions from completions during the current run.
+
+
+## V5.3.2: access modes and downloads
 
 Select **PTIT/IP** for your current entitled network, or **VNU — OpenAthens**, then **Đổi hồ sơ** to switch. PTIT/IP opens publishers directly and does not change your IP/VPN. VNU routes supported article pages through the library portal; sign in through **LIBRARY ACCESS** first. Complete any sign-in/CAPTCHA yourself.
 
-Each mode has separate cookies, queue state and diagnostics. Old V5.2.11 data is retained but not imported: sign in again on first use. Do not run two windows using the same profile.
+Each mode has separate cookies and diagnostics; both modes share queue progress for the same CSV and output folder. Old V5.2.11 data is retained but not imported: sign in again on first use. Do not run two windows using the same profile.
 
 **PDF đồng thời** controls concurrent native downloads (default 2, range 1–4); **PDF/nguồn** caps each publisher (default 1, range 1–2). The browser can navigate ahead while earlier downloads transfer. Direct anonymous HTTP downloads in IP mode remain serial. Throughput depends on source and network.
 
@@ -17,7 +24,7 @@ For comparison runs, use the same CSV, equal limits and separate empty PDF folde
 
 ## Install and start
 
-Download `PaperBatchDownloader-v5.3.0-win-x64-versioned.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete archive to a writable folder, and run `PaperBatchDownloader-v5.3.0.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
+Download `PaperBatchDownloader-v5.3.2-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete archive to a writable folder, and run `PaperBatchDownloader-v5.3.2.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
 
 This release targets Windows x64 with Microsoft WebView2 Evergreen. Install the [WebView2 Runtime from Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) if the browser cannot initialize. There is no native macOS, Linux, or ARM64 package in this release. An Internet connection and writable PDF folder are required. The executable is not code-signed; obtain it from this repository's Releases and compare its archive SHA-256 with the supplied checksum file.
 
@@ -111,7 +118,7 @@ Click a column header **▾** to filter. Text search ignores case; Status, Publi
 
 Close the old app after active transfers finish, extract the new version separately, and run the new executable. LocalAppData profile storage means moving the executable does not deliberately erase sessions.
 
-To resume the most recently saved queue, retain the CSV's **exact absolute path**, records/order, and PDF folder. Load that CSV, select the same output folder, and press RETRY INCOMPLETE. A copied CSV at another path is a different queue. V5.3.0 saves the most recent queue, not independent state for unlimited projects.
+To resume the most recently saved queue, retain the CSV's **exact absolute path**, records/order, and PDF folder. Load that CSV, select the same output folder, and press RETRY INCOMPLETE. A copied CSV at another path is a different queue. V5.3.2 saves progress separately for each CSV path/content and output-folder combination, shared across access modes.
 
 For a fresh run, copy the input to a new path and use an empty output folder. Do not blindly delete existing PDFs to resolve filename conflicts. Some complete late downloads recover after identity/completeness checks. Recognized old Springer supplementary/reference PDFs are deferred; retrying into the same folder preserves those files separately in Diagnostics before downloading the main article.
 

@@ -42,3 +42,9 @@ The maintainer reported V5.2.11 working well in their local use. Automated fixtu
 Additional fixture options: `--profiles-only`, `--pipeline-only`, `--publisher-block-only`. They exercise profile isolation/logout, concurrency ownership and limits, response cooldowns and HTTP-200 CPE error pages. The full fixture suite passed for the download changes; filter/UI checks passed after the final cosmetic cleanup. Institutional access and real throughput require live runs.
 
 `python scripts/compare_access_runs.py --help` documents comparing exported run diagnostics.
+
+## V5.3.2 shared queue
+
+Production progress is shared across access modes and keyed by normalized CSV path, CSV SHA-256 and output folder under `SharedQueues/<batch>`. Browser sessions and diagnostics remain under `Profiles/<mode>`. Temporary test profiles default to isolated queue storage; shared-queue fixtures explicitly supply a common temporary queue root.
+
+Run `dotnet run --project tests/IeeeRegression.csproj -c Release -- --shared-queue-only` for complementary PTIT/VNU downloads, profile switching, missing PDF recovery, legacy state migration and changed CSV/folder isolation. The full regression suite passed for the queue change; final focused checks also cover the migration safeguards and per-run existing/new completion counts. A successful live download was reported by the maintainer; an earlier suspected network interruption was not independently diagnosed.
