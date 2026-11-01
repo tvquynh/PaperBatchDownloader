@@ -1,4 +1,4 @@
-# User guide — V5.3.2
+# User guide — V5.3.3
 
 Some controls in the Windows application are localized. This guide uses English descriptions of those controls; **Switch profile** is next to the access-mode selector. In the library workspace, select a source to sign in, open a sample article, or check its page.
 
@@ -24,9 +24,17 @@ ScienceDirect error pages with **CPE00002** suspend that publisher for the curre
 For comparison runs, use the same CSV, equal limits and separate empty PDF folders. Export results and open the log folder after each run. Logs include profile/mode, run ID, CSV SHA-256 and per-run summaries. Review/redact personal information before sharing. Storage is under `%LOCALAPPDATA%\PaperBatchDownloader\Profiles\PTIT_IP` or `VNU_ACCOUNT`.
 
 
+## Rest between papers
+
+Set the **rest between papers (minutes)** control before or during a run. Enter **3** to wait three minutes after a PDF completes before opening the next paper, or **0.5** for 30 seconds. The range is 0–1440 minutes. The default **0** retains continuous downloads and the existing concurrency controls.
+
+With a positive interval, papers download one at a time. The status line shows the remaining hours:minutes:seconds. The first paper starts immediately and the queue finishes without an extra rest after its last paper. Failed, deferred or skipped papers do not create a new rest interval.
+
+**PAUSE** stops queue advancement. Real time continues to elapse while paused; **CONTINUE CURRENT** resumes and waits only for any remaining interval. Skip during the rest period leaves the completed paper intact. Changing the value recalculates the current wait from the last completion; setting it to zero removes the wait. Existing active work is allowed to finish. Each access profile saves its own interval for the next launch.
+
 ## Install and start
 
-Download `PaperBatchDownloader-v5.3.2-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete English-documentation archive to a writable folder, and run `PaperBatchDownloader-v5.3.2.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
+Download `PaperBatchDownloader-v5.3.3-win-x64.zip` from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest), extract the complete English-documentation archive to a writable folder, and run `PaperBatchDownloader-v5.3.3.exe`. Do not run inside the ZIP. Wait for **Browser ready**. The ZIP is self-contained for .NET; you do not need the .NET SDK to run it.
 
 This release targets Windows x64 with Microsoft WebView2 Evergreen. Install the [WebView2 Runtime from Microsoft](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) if the browser cannot initialize. There is no native macOS, Linux, or ARM64 package in this release. An Internet connection and writable PDF folder are required. The executable is not code-signed; obtain it from this repository's Releases and compare its archive SHA-256 with the supplied checksum file.
 

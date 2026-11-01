@@ -48,3 +48,9 @@ Additional fixture options: `--profiles-only`, `--pipeline-only`, `--publisher-b
 Production progress is shared across access modes and keyed by normalized CSV path, CSV SHA-256 and output folder under `SharedQueues/<batch>`. Browser sessions and diagnostics remain under `Profiles/<mode>`. Temporary test profiles default to isolated queue storage; shared-queue fixtures explicitly supply a common temporary queue root.
 
 Run `dotnet run --project tests/IeeeRegression.csproj -c Release -- --shared-queue-only` for complementary PTIT/VNU downloads, profile switching, missing PDF recovery, legacy state migration and changed CSV/folder isolation. The full regression suite passed for the queue change; final focused checks also cover the migration safeguards and per-run existing/new completion counts. A successful live download was reported by the maintainer; an earlier suspected network interruption was not independently diagnosed.
+
+## V5.3.3 download interval
+
+Run `dotnet run --project tests/IeeeRegression.csproj -c Release -- --interval-only` for real local HTTP PDFs covering completion-based waits, serialized transfers, countdown display, pause/resume, safe Skip, live interval changes, zero interval, final queue completion and settings persistence. The existing default fixture suite also passes. These checks do not download live publisher papers.
+
+The queue scheduler uses a monotonic completion timestamp and the existing UI pipeline timer. A positive interval prevents scheduling while transfers/finalization are active; zero preserves the original concurrency. Settings are stored in `download_interval.json` under each profile. Exclude `node_modules` from the C# test compile glob.

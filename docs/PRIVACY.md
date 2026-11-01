@@ -24,3 +24,5 @@ Closing/reopening the app does not guarantee a session remains valid: expiry is 
 VNU logout waits for transfers, requests OpenAthens sign-out, and clears the VNU browser profile site data/cache. It preserves queue state and PDFs, and does not clear PTIT data or other browsers. Per-run logs include CSV fingerprints, row metadata and performance summaries; treat them as private.
 
 V5.3.2 shares progress, not cookies, between access modes. A queue identity includes the normalized CSV path, content SHA-256 and output folder. Old per-profile queue files are read to recover verified completed PDFs in the selected folder. Existing files are never treated as the correct article solely because their filename matches. Logs distinguish existing completions from completions during the current run.
+
+The per-profile `download_interval.json` stores the chosen rest interval in minutes locally. Run diagnostics also record the interval.
