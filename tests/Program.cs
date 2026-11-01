@@ -33,6 +33,8 @@ internal static class Program
                     File.WriteAllText("new_oa_test/import-validation.json", JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented=true }));
                     Console.WriteLine(JsonSerializer.Serialize(report));
                 }
+                else if (args.Contains("--compact-only")) await CompactLayoutRegression.Run();
+                else if (args.Contains("--save-exit-only")) await SaveExitRegression.Run();
                 else if (args.Contains("--filters-only")) await FilterRegression.Run();
                 else if (args.Contains("--paywall-only")) await PaywallRegression.Run();
                 else if (args.Contains("--library-only")) await LibraryAccessRegression.Run();
