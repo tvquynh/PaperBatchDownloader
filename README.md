@@ -8,8 +8,8 @@ Download research-paper PDFs from a CSV using an embedded browser, your existing
 
 ## Bắt đầu nhanh
 
-1. Trong **Releases**, tải `PaperBatchDownloader-v5.3.0-win-x64.zip`; giải nén vào thư mục có quyền ghi.
-2. Mở `PaperBatchDownloader.exe`. Nếu thiếu WebView2, cài [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
+1. Trong **Releases**, tải `PaperBatchDownloader-v5.3.0-win-x64-versioned.zip`; giải nén vào thư mục có quyền ghi.
+2. Mở `PaperBatchDownloader-v5.3.0.exe`. Nếu thiếu WebView2, cài [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
 3. Bấm **CSV…**, chọn `examples/quickstart_oa.csv`, rồi **Load CSV**.
 4. Chọn thư mục kết quả mới bằng **Folder…**.
 5. Chọn PTIT/IP hoặc VNU và bấm **Đổi hồ sơ**. Với VNU: **LIBRARY ACCESS → Đăng nhập nguồn → Mở bài mẫu → Kiểm tra trang**.
@@ -19,7 +19,7 @@ Bản ZIP chứa .NET runtime; người dùng không cần cài .NET SDK để c
 
 ## Quick start
 
-Download and extract the Windows ZIP from Releases, run `PaperBatchDownloader.exe`, load `examples/quickstart_oa.csv`, choose a new output folder, and press **START**. If your articles need institutional access, prepare that session in **LIBRARY ACCESS** before starting. See the guides for resuming, CSV fields, and troubleshooting.
+Download and extract the Windows ZIP from Releases, run `PaperBatchDownloader-v5.3.0.exe`, load `examples/quickstart_oa.csv`, choose a new output folder, and press **START**. If your articles need institutional access, prepare that session in **LIBRARY ACCESS** before starting. See the guides for resuming, CSV fields, and troubleshooting.
 
 ## Features
 
