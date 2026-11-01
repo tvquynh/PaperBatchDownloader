@@ -4,22 +4,20 @@
 
 Download research-paper PDFs from a CSV using an embedded browser, your existing publisher/library access, and a resumable queue. Complete institutional sign-in and CAPTCHA yourself in the application. Includes a library-access workspace, column filters, per-article decisions, progress recovery, and local diagnostics.
 
-**[Download the Windows release](https://github.com/tvquynh/PaperBatchDownloader/releases/latest)** · **[Hướng dẫn tiếng Việt](docs/USER_GUIDE.vi.md)** · **[English user guide](docs/USER_GUIDE.en.md)**
-
-## Bắt đầu nhanh
-
-1. Trong **Releases**, tải `PaperBatchDownloader-v5.3.2-win-x64.zip`; giải nén vào thư mục có quyền ghi.
-2. Mở `PaperBatchDownloader-v5.3.2.exe`. Nếu thiếu WebView2, cài [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section).
-3. Bấm **CSV…**, chọn `examples/quickstart_oa.csv`, rồi **Load CSV**.
-4. Chọn thư mục kết quả mới bằng **Folder…**.
-5. Chọn PTIT/IP hoặc VNU và bấm **Đổi hồ sơ**. Với VNU: **LIBRARY ACCESS → Đăng nhập nguồn → Mở bài mẫu → Kiểm tra trang**.
-6. Bấm **START**. Để tải bổ sung bằng chế độ khác, chờ truyền xong rồi **Đổi hồ sơ**, giữ cùng CSV/thư mục và bấm **START** tiếp. Sau khi xong, dùng **Export result CSV** để lưu báo cáo.
-
-Bản ZIP chứa .NET runtime; người dùng không cần cài .NET SDK để chạy. Ứng dụng dành cho Windows x64 với WebView2 Evergreen; không có bản macOS/Linux hoặc ARM64 native trong release này. Không cần API key.
+**[Download the Windows release](https://github.com/tvquynh/PaperBatchDownloader/releases/latest)** · **[English user guide](docs/USER_GUIDE.en.md)**
 
 ## Quick start
 
-Download and extract the Windows ZIP from Releases, run `PaperBatchDownloader-v5.3.2.exe`, load `examples/quickstart_oa.csv`, choose a new output folder, and press **START**. If your articles need institutional access, prepare that session in **LIBRARY ACCESS** before starting. See the guides for resuming, CSV fields, and troubleshooting.
+1. Download the **English documentation** Windows ZIP from [Releases](https://github.com/tvquynh/PaperBatchDownloader/releases/latest) and extract it to a writable folder.
+2. Open `PaperBatchDownloader-v5.3.2.exe`, or use `OPEN_PTIT.cmd` / `OPEN_VNU.cmd` to select an access mode.
+3. Choose a PDF output folder, select `examples/quickstart_oa.csv` with **CSV...**, and click **Load CSV**.
+4. For institutional access, select the appropriate mode and prepare sign-in through **LIBRARY ACCESS**. Complete sign-in and CAPTCHA yourself.
+5. Press **START**. Inspect downloaded PDFs and use **Export result CSV** to save the results.
+6. To download unfinished articles through the other access mode, wait for active transfers, switch profiles, keep the same CSV/output folder, and press **START** again. Completed articles are retained.
+
+Requires Windows x64 and [Microsoft WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). The ZIP includes .NET; users do not need the .NET SDK or an API key to run it. There is no native macOS, Linux or ARM64 package in this release.
+
+Some Windows controls are localized. The [user guide](docs/USER_GUIDE.en.md) describes their functions in English.
 
 ## Features
 
@@ -42,7 +40,7 @@ doi,title,save_as
 10.48550/arXiv.1706.03762,Attention Is All You Need,attention.pdf
 ```
 
-For your own data, use `examples/template.csv` as a starting point. Supported formats and URL priority are documented in [the Vietnamese guide](docs/USER_GUIDE.vi.md#csv) and [the English guide](docs/USER_GUIDE.en.md#csv).
+For your own data, use `examples/template.csv` as a starting point. Supported formats and URL priority are documented in [the user guide](docs/USER_GUIDE.en.md#csv).
 
 ## Test inputs and validation
 
